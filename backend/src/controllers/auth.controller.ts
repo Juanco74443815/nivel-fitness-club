@@ -47,3 +47,12 @@ export async function loginController(
     });
   }
 }
+export async function logoutController(
+  _request: Request,
+  response: Response,
+): Promise<void> {
+  response.status(200).json({
+    status: "ok",
+    message: "Sesión cerrada correctamente",
+  });
+}
