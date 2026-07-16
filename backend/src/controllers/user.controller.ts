@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import {
+    listUsers,
   registerUser,
   UserError,
 } from "../services/user.service.js";
@@ -44,6 +45,27 @@ export async function createUserController(
     response.status(500).json({
       status: "error",
       message: "No se pudo registrar el usuario",
+    });
+  }
+}
+export async function listUsersController(
+  _request: Request,
+  response: Response,
+): Promise<void> {
+  try {
+    const users = await listUsers();
+
+    response.status(200).json({
+      status: "ok",
+      message: "Usuarios consultados correctamente",
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error al listar usuarios:", error);
+
+    response.status(500).json({
+      status: "error",
+      message: "No se pudieron consultar los usuarios",
     });
   }
 }

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import {
   createUser,
   findActiveRoleById,
+  findAllUsers,
   findUserByCiForValidation,
   findUserByEmailForValidation,
   type UserRecord,
@@ -65,4 +66,7 @@ export async function registerUser(
     correo: input.correo,
     passwordHash,
   });
+}
+export async function listUsers(): Promise<UserRecord[]> {
+  return findAllUsers();
 }

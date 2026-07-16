@@ -118,3 +118,25 @@ export async function createUser(data: {
 
   return result.rows[0];
 }
+export async function findAllUsers(): Promise<UserRecord[]> {
+  const result = await pool.query<UserRecord>(`
+    SELECT
+      u.id_usuario,
+      u.id_rol,
+      u.nombres,
+      u.apellidos,
+      u.ci,
+      u.telefono,
+      u.correo,
+      u.estado,
+      u.fecha_creacion,
+      u.ultimo_acceso,
+      r.nombre AS rol
+    FROM usuarios u
+    INNER JOIN roles r
+      ON r.id_rol = u.id_rol
+    ORDER BY u.id_usuario DESC
+  `);
+
+  return result.rows;
+}
