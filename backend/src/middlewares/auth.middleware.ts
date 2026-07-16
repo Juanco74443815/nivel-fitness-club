@@ -44,3 +44,32 @@ export async function requireAuthentication(
     });
   }
 }
+export function authorizeRoles(...allowedRoles: string[]) {
+  return (
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void => {
+    const authenticatedUser = request.auth;
+
+    if (!authenticatedUser) {
+      response.status(401).json({
+        status: "error",
+        message: "Token de autenticación requerido",
+      });
+
+      return;
+    }
+
+    if (!allowedRoles.includes(authenticatedUser.rol)) {
+      response.status(403).json({
+        status: "error",
+        message: "No tiene permisos para realizar esta acción",
+      });
+
+      return;
+    }
+
+    next();
+  };
+}
