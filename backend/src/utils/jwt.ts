@@ -1,5 +1,7 @@
 import "dotenv/config";
-import { SignJWT } from "jose";
+import { jwtVerify, SignJWT } from "jose";
+import { z } from "zod";
+import type { AuthenticatedTokenUser } from "../types/auth.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -18,6 +20,13 @@ interface AccessTokenPayload {
   correo: string;
 }
 
+const verifiedTokenSchema = z.object({
+  sub: z.string().regex(/^\d+$/),
+  id_rol: z.number().int().positive(),
+  rol: z.string().min(1),
+  correo: z.string().email(),
+});
+
 export async function createAccessToken(
   payload: AccessTokenPayload,
 ): Promise<string> {
@@ -34,4 +43,21 @@ export async function createAccessToken(
     .setIssuedAt()
     .setExpirationTime(process.env.JWT_EXPIRES_IN ?? "8h")
     .sign(encodedSecret);
+}
+
+export async function verifyAccessToken(
+  token: string,
+): Promise<AuthenticatedTokenUser> {
+  const { payload } = await jwtVerify(token, encodedSecret, {
+    algorithms: ["HS256"],
+  });
+
+  const claims = verifiedTokenSchema.parse(payload);
+
+  return {
+    idUsuario: Number(claims.sub),
+    idRol: claims.id_rol,
+    rol: claims.rol,
+    correo: claims.correo,
+  };
 }
