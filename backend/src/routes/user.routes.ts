@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createUserController,
   listUsersController,
+  updateUserController,
 } from "../controllers/user.controller.js";
 import {
   authorizeRoles,
@@ -17,9 +18,16 @@ userRouter.get(
   listUsersController,
 );
 
+
 userRouter.post(
   "/",
   requireAuthentication,
   authorizeRoles("Administrador"),
   createUserController,
+);
+userRouter.patch(
+  "/:id",
+  requireAuthentication,
+  authorizeRoles("Administrador"),
+  updateUserController,
 );

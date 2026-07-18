@@ -3,11 +3,18 @@ import {
   createUser,
   findActiveRoleById,
   findAllUsers,
+  findUserByCiExcludingId,
   findUserByCiForValidation,
+  findUserByEmailExcludingId,
   findUserByEmailForValidation,
+  findUserById,
+  updateUserById,
   type UserRecord,
 } from "../repositories/user.repository.js";
-import type { CreateUserInput } from "../validators/user.validator.js";
+import type {
+  CreateUserInput,
+  UpdateUserInput,
+} from "../validators/user.validator.js";
 
 export class UserError extends Error {
   constructor(
@@ -67,6 +74,70 @@ export async function registerUser(
     passwordHash,
   });
 }
+
 export async function listUsers(): Promise<UserRecord[]> {
   return findAllUsers();
+}
+
+export async function updateUser(
+  idUsuario: number,
+  input: UpdateUserInput,
+): Promise<UserRecord> {
+  const currentUser = await findUserById(idUsuario);
+
+  if (!currentUser) {
+    throw new UserError(
+      404,
+      "El usuario seleccionado no existe",
+    );
+  }
+
+  const nombres = input.nombres ?? currentUser.nombres;
+  const apellidos = input.apellidos ?? currentUser.apellidos;
+  const ci =
+    input.ci === undefined
+      ? currentUser.ci
+      : input.ci?.trim() || null;
+
+  const telefono =
+    input.telefono === undefined
+      ? currentUser.telefono
+      : input.telefono?.trim() || null;
+
+  const correo = input.correo ?? currentUser.correo;
+
+  const existingEmail = await findUserByEmailExcludingId(
+    correo,
+    idUsuario,
+  );
+
+  if (existingEmail) {
+    throw new UserError(
+      409,
+      "Ya existe otro usuario registrado con ese correo",
+    );
+  }
+
+  if (ci) {
+    const existingCi = await findUserByCiExcludingId(
+      ci,
+      idUsuario,
+    );
+
+    if (existingCi) {
+      throw new UserError(
+        409,
+        "Ya existe otro usuario registrado con ese CI",
+      );
+    }
+  }
+
+  return updateUserById({
+    idUsuario,
+    nombres,
+    apellidos,
+    ci,
+    telefono,
+    correo,
+  });
 }

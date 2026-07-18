@@ -2,9 +2,10 @@ import type { Request, Response } from "express";
 import {
     listUsers,
   registerUser,
+  updateUser,
   UserError,
 } from "../services/user.service.js";
-import { createUserSchema } from "../validators/user.validator.js";
+import { createUserSchema, updateUserSchema } from "../validators/user.validator.js";
 
 export async function createUserController(
   request: Request,
@@ -66,6 +67,59 @@ export async function listUsersController(
     response.status(500).json({
       status: "error",
       message: "No se pudieron consultar los usuarios",
+    });
+  }
+}
+export async function updateUserController(
+  request: Request,
+  response: Response,
+): Promise<void> {
+  const idUsuario = Number(request.params.id);
+
+  if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+    response.status(400).json({
+      status: "error",
+      message: "El identificador del usuario no es válido",
+    });
+
+    return;
+  }
+
+  const validation = updateUserSchema.safeParse(request.body);
+
+  if (!validation.success) {
+    response.status(400).json({
+      status: "error",
+      message: "Los datos enviados no son válidos",
+      errors: validation.error.flatten().fieldErrors,
+    });
+
+    return;
+  }
+
+  try {
+    const user = await updateUser(idUsuario, validation.data);
+
+    response.status(200).json({
+      status: "ok",
+      message: "Usuario actualizado correctamente",
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof UserError) {
+      response.status(error.statusCode).json({
+        status: "error",
+        message: error.message,
+      });
+
+      return;
+    }
+
+    console.error("Error al actualizar usuario:", error);
+
+    response.status(500).json({
+      status: "error",
+      message: "No se pudo actualizar el usuario",
     });
   }
 }

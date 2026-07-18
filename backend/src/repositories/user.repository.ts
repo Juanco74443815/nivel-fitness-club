@@ -118,6 +118,7 @@ export async function createUser(data: {
 
   return result.rows[0];
 }
+
 export async function findAllUsers(): Promise<UserRecord[]> {
   const result = await pool.query<UserRecord>(`
     SELECT
@@ -139,4 +140,118 @@ export async function findAllUsers(): Promise<UserRecord[]> {
   `);
 
   return result.rows;
+}
+
+export async function findUserById(
+  idUsuario: number,
+): Promise<UserRecord | null> {
+  const result = await pool.query<UserRecord>(
+    `
+      SELECT
+        u.id_usuario,
+        u.id_rol,
+        u.nombres,
+        u.apellidos,
+        u.ci,
+        u.telefono,
+        u.correo,
+        u.estado,
+        u.fecha_creacion,
+        u.ultimo_acceso,
+        r.nombre AS rol
+      FROM usuarios u
+      INNER JOIN roles r
+        ON r.id_rol = u.id_rol
+      WHERE u.id_usuario = $1
+      LIMIT 1
+    `,
+    [idUsuario],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function findUserByEmailExcludingId(
+  correo: string,
+  idUsuario: number,
+): Promise<{ id_usuario: number } | null> {
+  const result = await pool.query<{ id_usuario: number }>(
+    `
+      SELECT id_usuario
+      FROM usuarios
+      WHERE LOWER(correo) = LOWER($1)
+        AND id_usuario <> $2
+      LIMIT 1
+    `,
+    [correo, idUsuario],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function findUserByCiExcludingId(
+  ci: string,
+  idUsuario: number,
+): Promise<{ id_usuario: number } | null> {
+  const result = await pool.query<{ id_usuario: number }>(
+    `
+      SELECT id_usuario
+      FROM usuarios
+      WHERE ci = $1
+        AND id_usuario <> $2
+      LIMIT 1
+    `,
+    [ci, idUsuario],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function updateUserById(data: {
+  idUsuario: number;
+  nombres: string;
+  apellidos: string;
+  ci: string | null;
+  telefono: string | null;
+  correo: string;
+}): Promise<UserRecord> {
+  const result = await pool.query<UserRecord>(
+    `
+      UPDATE usuarios
+      SET
+        nombres = $1,
+        apellidos = $2,
+        ci = $3,
+        telefono = $4,
+        correo = LOWER($5),
+        fecha_actualizacion = CURRENT_TIMESTAMP
+      WHERE id_usuario = $6
+      RETURNING
+        id_usuario,
+        id_rol,
+        nombres,
+        apellidos,
+        ci,
+        telefono,
+        correo,
+        estado,
+        fecha_creacion,
+        ultimo_acceso,
+        (
+          SELECT nombre
+          FROM roles
+          WHERE roles.id_rol = usuarios.id_rol
+        ) AS rol
+    `,
+    [
+      data.nombres,
+      data.apellidos,
+      data.ci,
+      data.telefono,
+      data.correo,
+      data.idUsuario,
+    ],
+  );
+
+  return result.rows[0];
 }
