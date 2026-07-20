@@ -142,6 +142,19 @@ export async function findAllUsers(): Promise<UserRecord[]> {
   return result.rows;
 }
 
+export async function countActiveAdministrators(): Promise<number> {
+  const result = await pool.query<{ total: string }>(`
+    SELECT COUNT(*)::text AS total
+    FROM usuarios u
+    INNER JOIN roles r
+      ON r.id_rol = u.id_rol
+    WHERE u.estado = 'ACTIVO'
+      AND r.nombre = 'Administrador'
+  `);
+
+  return Number(result.rows[0]?.total ?? 0);
+}
+
 export async function findUserById(
   idUsuario: number,
 ): Promise<UserRecord | null> {
@@ -205,6 +218,73 @@ export async function findUserByCiExcludingId(
   );
 
   return result.rows[0] ?? null;
+}
+
+export async function updateUserRoleById(
+  idUsuario: number,
+  idRol: number,
+): Promise<UserRecord> {
+  const result = await pool.query<UserRecord>(
+    `
+      UPDATE usuarios
+      SET
+        id_rol = $1,
+        fecha_actualizacion = CURRENT_TIMESTAMP
+      WHERE id_usuario = $2
+      RETURNING
+        id_usuario,
+        id_rol,
+        nombres,
+        apellidos,
+        ci,
+        telefono,
+        correo,
+        estado,
+        fecha_creacion,
+        ultimo_acceso,
+        (
+          SELECT nombre
+          FROM roles
+          WHERE roles.id_rol = usuarios.id_rol
+        ) AS rol
+    `,
+    [idRol, idUsuario],
+  );
+
+  return result.rows[0];
+}
+
+export async function deactivateUserById(
+  idUsuario: number,
+): Promise<UserRecord> {
+  const result = await pool.query<UserRecord>(
+    `
+      UPDATE usuarios
+      SET
+        estado = 'INACTIVO',
+        fecha_actualizacion = CURRENT_TIMESTAMP
+      WHERE id_usuario = $1
+      RETURNING
+        id_usuario,
+        id_rol,
+        nombres,
+        apellidos,
+        ci,
+        telefono,
+        correo,
+        estado,
+        fecha_creacion,
+        ultimo_acceso,
+        (
+          SELECT nombre
+          FROM roles
+          WHERE roles.id_rol = usuarios.id_rol
+        ) AS rol
+    `,
+    [idUsuario],
+  );
+
+  return result.rows[0];
 }
 
 export async function updateUserById(data: {

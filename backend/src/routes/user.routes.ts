@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
+  changeUserRoleController,
   createUserController,
+  deactivateUserController,
   listUsersController,
   updateUserController,
 } from "../controllers/user.controller.js";
@@ -30,4 +32,18 @@ userRouter.patch(
   requireAuthentication,
   authorizeRoles("Administrador"),
   updateUserController,
+);
+
+userRouter.patch(
+  "/:id/role",
+  requireAuthentication,
+  authorizeRoles("Administrador"),
+  changeUserRoleController,
+);
+
+userRouter.patch(
+  "/:id/deactivate",
+  requireAuthentication,
+  authorizeRoles("Administrador"),
+  deactivateUserController,
 );

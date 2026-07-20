@@ -1,13 +1,6 @@
 import { z } from "zod";
 
-export const createUserSchema = z.object({
-  id_rol: z
-    .number({
-      message: "El rol es obligatorio",
-    })
-    .int()
-    .positive(),
-
+export const createSocioSchema = z.object({
   nombres: z
     .string()
     .trim()
@@ -39,14 +32,26 @@ export const createUserSchema = z.object({
     .trim()
     .email("El correo electrónico no es válido")
     .max(150)
-    .transform((value) => value.toLowerCase()),
+    .transform((value) => value.toLowerCase())
+    .optional()
+    .nullable(),
 
-  password: z
+  fecha_nacimiento: z
     .string()
-    .min(8, "La contraseña debe tener al menos 8 caracteres"),
+    .trim()
+    .date("La fecha de nacimiento no es válida")
+    .optional()
+    .nullable(),
+
+  id_usuario: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .nullable(),
 });
 
-export const updateUserSchema = z.object({
+export const updateSocioSchema = z.object({
   nombres: z
     .string()
     .trim()
@@ -81,18 +86,16 @@ export const updateUserSchema = z.object({
     .email("El correo electrónico no es válido")
     .max(150)
     .transform((value) => value.toLowerCase())
-    .optional(),
+    .optional()
+    .nullable(),
+
+  fecha_nacimiento: z
+    .string()
+    .trim()
+    .date("La fecha de nacimiento no es válida")
+    .optional()
+    .nullable(),
 });
 
-export const changeUserRoleSchema = z.object({
-  id_rol: z
-    .number({
-      message: "El rol es obligatorio",
-    })
-    .int()
-    .positive(),
-});
-
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type ChangeUserRoleInput = z.infer<typeof changeUserRoleSchema>;
+export type CreateSocioInput = z.infer<typeof createSocioSchema>;
+export type UpdateSocioInput = z.infer<typeof updateSocioSchema>;

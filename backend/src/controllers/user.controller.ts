@@ -1,11 +1,17 @@
 import type { Request, Response } from "express";
 import {
-    listUsers,
+  changeUserRole,
+  deactivateUser,
+  listUsers,
   registerUser,
   updateUser,
   UserError,
 } from "../services/user.service.js";
-import { createUserSchema, updateUserSchema } from "../validators/user.validator.js";
+import {
+  changeUserRoleSchema,
+  createUserSchema,
+  updateUserSchema,
+} from "../validators/user.validator.js";
 
 export async function createUserController(
   request: Request,
@@ -120,6 +126,124 @@ export async function updateUserController(
     response.status(500).json({
       status: "error",
       message: "No se pudo actualizar el usuario",
+    });
+  }
+}
+
+export async function changeUserRoleController(
+  request: Request,
+  response: Response,
+): Promise<void> {
+  const idUsuario = Number(request.params.id);
+
+  if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+    response.status(400).json({
+      status: "error",
+      message: "El identificador del usuario no es válido",
+    });
+
+    return;
+  }
+
+  const validation = changeUserRoleSchema.safeParse(request.body);
+
+  if (!validation.success) {
+    response.status(400).json({
+      status: "error",
+      message: "Los datos enviados no son válidos",
+      errors: validation.error.flatten().fieldErrors,
+    });
+
+    return;
+  }
+
+  if (!request.auth) {
+    response.status(401).json({
+      status: "error",
+      message: "Token de autenticación requerido",
+    });
+
+    return;
+  }
+
+  try {
+    const user = await changeUserRole(
+      idUsuario,
+      validation.data,
+      request.auth.idUsuario,
+    );
+
+    response.status(200).json({
+      status: "ok",
+      message: "Rol de usuario actualizado correctamente",
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof UserError) {
+      response.status(error.statusCode).json({
+        status: "error",
+        message: error.message,
+      });
+
+      return;
+    }
+
+    console.error("Error al actualizar el rol del usuario:", error);
+
+    response.status(500).json({
+      status: "error",
+      message: "No se pudo actualizar el rol del usuario",
+    });
+  }
+}
+
+export async function deactivateUserController(
+  request: Request,
+  response: Response,
+): Promise<void> {
+  const idUsuario = Number(request.params.id);
+
+  if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+    response.status(400).json({
+      status: "error",
+      message: "El identificador del usuario no es válido",
+    });
+
+    return;
+  }
+
+  if (!request.auth) {
+    response.status(401).json({
+      status: "error",
+      message: "Token de autenticación requerido",
+    });
+
+    return;
+  }
+
+  try {
+    const user = await deactivateUser(idUsuario, request.auth.idUsuario);
+
+    response.status(200).json({
+      status: "ok",
+      message: "Usuario desactivado correctamente",
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof UserError) {
+      response.status(error.statusCode).json({
+        status: "error",
+        message: error.message,
+      });
+
+      return;
+    }
+
+    console.error("Error al desactivar el usuario:", error);
+
+    response.status(500).json({
+      status: "error",
+      message: "No se pudo desactivar el usuario",
     });
   }
 }

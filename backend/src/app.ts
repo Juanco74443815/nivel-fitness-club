@@ -6,16 +6,17 @@ import { testDatabaseConnection } from "./config/database.js";
 import { roleRouter } from "./routes/role.routes.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { userRouter } from "./routes/user.routes.js";
+import { socioRouter } from "./routes/socio.routes.js";
 
 export const app = express();
 
-app.use("/api/roles", roleRouter);
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api/users", userRouter);
 app.use("/api/roles", roleRouter);
+app.use("/api/socios", socioRouter);
 
 app.use("/api/auth", authRouter);
 

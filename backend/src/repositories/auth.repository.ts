@@ -40,6 +40,23 @@ export async function findUserByEmail(
   return result.rows[0] ?? null;
 }
 
+export async function findActiveUserIdByEmail(
+  correo: string,
+): Promise<{ id_usuario: number } | null> {
+  const result = await pool.query<{ id_usuario: number }>(
+    `
+      SELECT id_usuario
+      FROM usuarios
+      WHERE LOWER(correo) = LOWER($1)
+        AND estado = 'ACTIVO'
+      LIMIT 1
+    `,
+    [correo],
+  );
+
+  return result.rows[0] ?? null;
+}
+
 export async function updateLastAccess(
   idUsuario: number,
 ): Promise<void> {
