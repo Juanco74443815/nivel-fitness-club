@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'expo-router';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -103,6 +104,12 @@ export default function SignInScreen() {
             </ThemedText>
           )}
         </Pressable>
+
+        <Link href="/recuperar-password" style={styles.link}>
+          <ThemedText style={{ color: Colors[colorScheme].tint }}>
+            ¿Olvidaste tu contraseña?
+          </ThemedText>
+        </Link>
       </ThemedView>
     </KeyboardAvoidingView>
   );
@@ -145,5 +152,9 @@ const styles = StyleSheet.create({
   error: {
     color: '#d92626',
     textAlign: 'center',
+  },
+  link: {
+    marginTop: 8,
+    alignSelf: 'center',
   },
 });

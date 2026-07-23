@@ -18,6 +18,8 @@ const MAPPING = {
   'person.fill': 'person',
   'person.2.fill': 'people',
   'person.3.fill': 'groups',
+  'calendar': 'event',
+  'checkmark.circle.fill': 'check-circle',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
