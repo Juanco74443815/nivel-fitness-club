@@ -70,4 +70,8 @@ Esta historia ya estaba implementada de una sesión anterior (commit `f4b7853 �
 - Captura de consulta sin autenticación: **Pendiente**
 - Captura de rechazo por rol inactivo: **Pendiente**
 - Captura o registro de Trello: **Pendiente**
-- Enlace o referencia del commit de GitHub: **Pendiente**
+- Rama de GitHub: `sprint-01-autenticacion-usuarios-socios`
+- Commit de cierre técnico del Sprint 1: `dd5cb8c`
+- Estado del push: exitoso (rama actualizada en el remoto)
+- Pull Request: **Pendiente** (todavía no existe)
+- Merge: **Pendiente**

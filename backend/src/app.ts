@@ -7,6 +7,9 @@ import { roleRouter } from "./routes/role.routes.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { userRouter } from "./routes/user.routes.js";
 import { socioRouter } from "./routes/socio.routes.js";
+import { claseRouter } from "./routes/clase.routes.js";
+import { programacionRouter } from "./routes/programacion.routes.js";
+import { reservaRouter } from "./routes/reserva.routes.js";
 
 export const app = express();
 
@@ -17,6 +20,9 @@ app.use(morgan("dev"));
 app.use("/api/users", userRouter);
 app.use("/api/roles", roleRouter);
 app.use("/api/socios", socioRouter);
+app.use("/api/clases", claseRouter);
+app.use("/api/programaciones", programacionRouter);
+app.use("/api/reservas", reservaRouter);
 
 app.use("/api/auth", authRouter);
 

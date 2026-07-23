@@ -73,4 +73,8 @@ Trello y la validación correspondiente del Product Owner y del tutor.
 - Captura de actualización de usuario inexistente: **Pendiente**
 - Captura de actualización sin autenticación: **Pendiente**
 - Captura o registro de Trello: **Pendiente**
-- Enlace o referencia del commit de GitHub: **Pendiente**
+- Rama de GitHub: `sprint-01-autenticacion-usuarios-socios`
+- Commit de cierre técnico del Sprint 1: `dd5cb8c`
+- Estado del push: exitoso (rama actualizada en el remoto)
+- Pull Request: **Pendiente** (todavía no existe)
+- Merge: **Pendiente**

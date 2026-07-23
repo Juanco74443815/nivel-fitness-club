@@ -161,6 +161,16 @@ De los 6 usuarios QA, 1 permanece `ACTIVO` (`id_usuario = 3`, creado en la sesi�
 4. Si en el futuro se requiere una limpieza más profunda (por ejemplo, antes de una entrega final o de una demo), evaluar con el Product Owner/tutor si se justifica una eliminación física controlada, ejecutada manualmente sobre la base de datos de **desarrollo local únicamente**, filtrando estrictamente por los patrones `correo LIKE 'qa.%'` y `ci LIKE 'QA-%'`, con respaldo previo (`pg_dump`) y nunca sobre un entorno con datos reales de producción.
 5. No se propone ni se ejecuta ninguna eliminación en este cierre técnico; esta sección es solo una propuesta de procedimiento para aprobación posterior.
 
+### 9.4 Referencia de GitHub (commit de cierre técnico)
+
+- **Rama:** `sprint-01-autenticacion-usuarios-socios`
+- **Commit de cierre técnico del Sprint 1:** `dd5cb8c`
+- **Estado del push:** exitoso (rama actualizada en el repositorio remoto)
+- **Pull Request:** **Pendiente** (todavía no existe ninguna, verificado consultando la API pública de GitHub)
+- **Merge:** **Pendiente**
+
+Esta referencia también fue añadida a la sección "Evidencias pendientes de insertar" de cada documento `HDU-01-*.md` a `HDU-13-*.md`. Las capturas visuales, el registro en Trello y las validaciones del Product Owner y del tutor **siguen marcadas como Pendiente** en todos los documentos; esta actualización solo registra la referencia de control de versiones, no cierra ninguna de esas evidencias.
+
 ## 10. Resumen para el documento Word (capítulo de desarrollo / resultados)
 
 > Durante el Sprint 1 se implementó y validó funcionalmente, en un entorno local de desarrollo, el módulo de autenticación y gestión de usuarios del sistema (inicio y cierre de sesión con JWT, recuperación de contraseña por token de un solo uso, registro/listado/actualización de cuentas, asignación y cambio de rol, desactivación de cuentas y consulta de perfil), así como el módulo de gestión de socios (registro con generación automática de código único, listado con búsqueda y filtros, actualización de datos personales y desactivación lógica). Se incorporaron protecciones administrativas específicas para evitar que el propio Administrador se despoje de sus permisos o desactive su cuenta, y para impedir que el sistema quede sin al menos un Administrador activo. Todas las operaciones de baja son lógicas (cambio de estado), sin eliminación física de información, conforme a los lineamientos técnicos del proyecto. El control de acceso por rol (Administrador, Recepcionista, Socio) se verificó en cada endpoint mediante autenticación JWT y autorización por rol en el backend. Las 13 historias de usuario planificadas para este sprint (HDU-01 a HDU-13) quedaron aprobadas técnicamente en el entorno local; su cierre formal está pendiente de evidencias visuales, registro en la herramienta de gestión de tareas (Trello), y validación del Product Owner y del tutor del proyecto.

@@ -71,4 +71,8 @@ Acceso: requiere autenticación y rol Administrador o Recepcionista.
 - Captura de socio inexistente: **Pendiente**
 - Captura de correo duplicado: **Pendiente**
 - Captura o registro de Trello: **Pendiente**
-- Enlace o referencia del commit de GitHub: **Pendiente**
+- Rama de GitHub: `sprint-01-autenticacion-usuarios-socios`
+- Commit de cierre técnico del Sprint 1: `dd5cb8c`
+- Estado del push: exitoso (rama actualizada en el remoto)
+- Pull Request: **Pendiente** (todavía no existe)
+- Merge: **Pendiente**
