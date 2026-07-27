@@ -14,14 +14,19 @@ import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   ApiError,
+  cancelarReserva,
   crearReserva,
+  listMisReservas,
   listProgramaciones,
   type ProgramacionClase,
+  type ReservaListado,
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
 import { formatFecha, formatHora } from '@/lib/format';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+type Pestana = 'DISPONIBLES' | 'MIS_RESERVAS';
 
 export default function ReservasScreen() {
   const { token, usuario } = useSession();
@@ -32,11 +37,18 @@ export default function ReservasScreen() {
     usuario?.rol === 'Socio';
   const esSocio = usuario?.rol === 'Socio';
 
+  const [pestana, setPestana] = useState<Pestana>('DISPONIBLES');
+
   const [sesiones, setSesiones] = useState<ProgramacionClase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reservando, setReservando] = useState<number | null>(null);
+
+  const [misReservas, setMisReservas] = useState<ReservaListado[]>([]);
+  const [cargandoMisReservas, setCargandoMisReservas] = useState(true);
+  const [errorMisReservas, setErrorMisReservas] = useState<string | null>(null);
+  const [cancelando, setCancelando] = useState<number | null>(null);
 
   const cargarSesiones = useCallback(
     async (mostrarCargando: boolean) => {
@@ -65,11 +77,35 @@ export default function ReservasScreen() {
     [token, puedeConsultar],
   );
 
+  const cargarMisReservas = useCallback(async () => {
+    if (!token || !esSocio) {
+      setCargandoMisReservas(false);
+      return;
+    }
+
+    setCargandoMisReservas(true);
+    setErrorMisReservas(null);
+
+    try {
+      const data = await listMisReservas(token);
+      setMisReservas(data);
+    } catch (fetchError) {
+      setErrorMisReservas(
+        fetchError instanceof ApiError
+          ? fetchError.message
+          : 'No se pudieron consultar tus reservas.',
+      );
+    } finally {
+      setCargandoMisReservas(false);
+    }
+  }, [token, esSocio]);
+
   useFocusEffect(
     useCallback(() => {
       cargarSesiones(true);
+      cargarMisReservas();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cargarSesiones]),
+    }, [cargarSesiones, cargarMisReservas]),
   );
 
   function onRefresh() {
@@ -92,6 +128,7 @@ export default function ReservasScreen() {
       await crearReserva(token, sesion.id_programacion);
       notify('Reserva confirmada', 'Tu reserva se registró correctamente.');
       cargarSesiones(false);
+      cargarMisReservas();
     } catch (reserveError) {
       notify(
         'No se pudo reservar',
@@ -101,6 +138,33 @@ export default function ReservasScreen() {
       );
     } finally {
       setReservando(null);
+    }
+  }
+
+  async function handleCancelar(reserva: ReservaListado) {
+    const confirmado = await confirmAsync(
+      'Cancelar reserva',
+      `¿Deseas cancelar tu reserva de ${reserva.clase_nombre} el ${formatFecha(reserva.fecha)}?`,
+      'Cancelar reserva',
+    );
+
+    if (!confirmado || !token) return;
+
+    setCancelando(reserva.id_reserva);
+
+    try {
+      await cancelarReserva(token, reserva.id_reserva);
+      await cargarMisReservas();
+      cargarSesiones(false);
+    } catch (cancelError) {
+      notify(
+        'No se pudo cancelar',
+        cancelError instanceof ApiError
+          ? cancelError.message
+          : 'Ocurrió un error inesperado.',
+      );
+    } finally {
+      setCancelando(null);
     }
   }
 
@@ -118,29 +182,114 @@ export default function ReservasScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.spacing}>
-        Sesiones disponibles
+        Reservas
       </ThemedText>
 
-      {isLoading ? (
+      {esSocio && (
+        <View style={styles.filtros}>
+          {(['DISPONIBLES', 'MIS_RESERVAS'] as Pestana[]).map((opcion) => (
+            <Pressable
+              key={opcion}
+              onPress={() => setPestana(opcion)}
+              style={[
+                styles.chip,
+                {
+                  borderColor: Colors[colorScheme].tint,
+                  backgroundColor:
+                    pestana === opcion ? Colors[colorScheme].tint : 'transparent',
+                },
+              ]}>
+              <ThemedText
+                style={{
+                  color: pestana === opcion ? '#fff' : Colors[colorScheme].text,
+                  fontSize: 13,
+                }}>
+                {opcion === 'DISPONIBLES' ? 'Disponibles' : 'Mis reservas'}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {pestana === 'DISPONIBLES' || !esSocio ? (
+        isLoading ? (
+          <ActivityIndicator style={styles.spacing} />
+        ) : error ? (
+          <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        ) : (
+          <FlatList
+            data={sesiones}
+            keyExtractor={(item) => String(item.id_programacion)}
+            extraData={[reservando]}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              <ThemedText style={styles.spacing}>
+                No hay sesiones programadas por el momento.
+              </ThemedText>
+            }
+            renderItem={({ item }) => {
+              const bloqueado = reservando === item.id_programacion;
+              const sinCupo = item.cupos_disponibles <= 0;
+
+              return (
+                <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+                  <ThemedText type="defaultSemiBold">{item.clase_nombre}</ThemedText>
+                  <ThemedText>
+                    {formatFecha(item.fecha)} · {formatHora(item.hora_inicio)} -{' '}
+                    {formatHora(item.hora_fin)}
+                  </ThemedText>
+                  <ThemedText>
+                    Cupos disponibles: {item.cupos_disponibles}/{item.cupo_maximo}
+                  </ThemedText>
+
+                  {esSocio && (
+                    <View style={styles.actions}>
+                      <Pressable
+                        disabled={bloqueado || sinCupo}
+                        onPress={() => handleReservar(item)}
+                        style={[
+                          styles.reservarBoton,
+                          {
+                            backgroundColor: sinCupo
+                              ? Colors[colorScheme].icon
+                              : Colors[colorScheme].tint,
+                          },
+                        ]}>
+                        {bloqueado ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+                            {sinCupo ? 'Sin cupo' : 'Reservar'}
+                          </ThemedText>
+                        )}
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              );
+            }}
+          />
+        )
+      ) : cargandoMisReservas ? (
         <ActivityIndicator style={styles.spacing} />
-      ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+      ) : errorMisReservas ? (
+        <ThemedText style={[styles.spacing, styles.error]}>
+          {errorMisReservas}
+        </ThemedText>
       ) : (
         <FlatList
-          data={sesiones}
-          keyExtractor={(item) => String(item.id_programacion)}
-          extraData={[reservando]}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-          }
+          data={misReservas}
+          keyExtractor={(item) => String(item.id_reserva)}
+          extraData={[cancelando]}
           ListEmptyComponent={
             <ThemedText style={styles.spacing}>
-              No hay sesiones programadas por el momento.
+              Todavía no tienes reservas registradas.
             </ThemedText>
           }
           renderItem={({ item }) => {
-            const bloqueado = reservando === item.id_programacion;
-            const sinCupo = item.cupos_disponibles <= 0;
+            const bloqueado = cancelando === item.id_reserva;
 
             return (
               <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
@@ -149,28 +298,19 @@ export default function ReservasScreen() {
                   {formatFecha(item.fecha)} · {formatHora(item.hora_inicio)} -{' '}
                   {formatHora(item.hora_fin)}
                 </ThemedText>
-                <ThemedText>
-                  Cupos disponibles: {item.cupos_disponibles}/{item.cupo_maximo}
-                </ThemedText>
+                <ThemedText>Estado: {item.estado}</ThemedText>
 
-                {esSocio && (
+                {item.estado === 'ACTIVA' && (
                   <View style={styles.actions}>
                     <Pressable
-                      disabled={bloqueado || sinCupo}
-                      onPress={() => handleReservar(item)}
-                      style={[
-                        styles.reservarBoton,
-                        {
-                          backgroundColor: sinCupo
-                            ? Colors[colorScheme].icon
-                            : Colors[colorScheme].tint,
-                        },
-                      ]}>
+                      disabled={bloqueado}
+                      onPress={() => handleCancelar(item)}
+                      style={styles.actionButton}>
                       {bloqueado ? (
-                        <ActivityIndicator size="small" color="#fff" />
+                        <ActivityIndicator size="small" />
                       ) : (
-                        <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
-                          {sinCupo ? 'Sin cupo' : 'Reservar'}
+                        <ThemedText style={[styles.actionText, styles.error]}>
+                          Cancelar reserva
                         </ThemedText>
                       )}
                     </Pressable>
@@ -194,6 +334,17 @@ const styles = StyleSheet.create({
   spacing: {
     marginBottom: 16,
   },
+  filtros: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  chip: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
   error: {
     color: '#d92626',
   },
@@ -207,6 +358,12 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     marginTop: 8,
+  },
+  actionButton: {
+    paddingVertical: 4,
+  },
+  actionText: {
+    fontWeight: '600',
   },
   reservarBoton: {
     borderRadius: 8,

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'expo-router';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -52,9 +53,11 @@ export default function SignInScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
-          Nivel Fitness Club
-        </ThemedText>
+        <Image
+          source={require('@/assets/images/logo-nivel-fitness.jpg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <ThemedText style={styles.subtitle}>Inicia sesión para continuar</ThemedText>
 
         <TextInput
@@ -125,8 +128,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 12,
   },
-  title: {
-    textAlign: 'center',
+  logo: {
+    width: 160,
+    height: 160,
+    alignSelf: 'center',
+    borderRadius: 80,
+    marginBottom: 8,
   },
   subtitle: {
     textAlign: 'center',

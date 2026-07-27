@@ -21,3 +21,11 @@ Thumbs.db
 # Registros
 *.log
 npm-debug.log*
+
+# Notas de sesion de Claude Code (contienen credenciales de prueba en texto plano)
+HANDOFF.md
+PROJECT_CONTEXT.md
+PROJECT_CONTEXT_PART2.md
+
+# Configuracion local de Claude Code (no es codigo del proyecto)
+.claude/skills/

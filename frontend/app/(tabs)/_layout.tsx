@@ -61,6 +61,20 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="planes-membresia"
+        options={{
+          title: 'Planes',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="membresias"
+        options={{
+          title: 'Membresías',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="creditcard.fill" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

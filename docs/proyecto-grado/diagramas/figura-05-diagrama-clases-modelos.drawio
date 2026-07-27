@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Modelos" id="modelos-nivel-fitness-club">
+    <mxGraphModel dx="1585" dy="811" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Rol" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Rol&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_rol&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;nombre: string&lt;br/&gt;descripcion: string | null&lt;br/&gt;estado: &#39;ACTIVO&#39; | &#39;INACTIVO&#39;&lt;br/&gt;fecha_creacion: Date" vertex="1">
+          <mxGeometry height="186" width="340" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Usuario" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Usuario&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_usuario&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_rol: number&lt;br/&gt;nombres: string&lt;br/&gt;apellidos: string&lt;br/&gt;ci: string | null&lt;br/&gt;telefono: string | null&lt;br/&gt;correo: string&lt;br/&gt;password_hash: string&lt;br/&gt;estado: &#39;ACTIVO&#39; | &#39;INACTIVO&#39;&lt;br/&gt;fecha_creacion: Date&lt;br/&gt;fecha_actualizacion: Date&lt;br/&gt;ultimo_acceso: Date | null" vertex="1">
+          <mxGeometry height="326" width="340" x="510" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="TokenRecuperacion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;TokenRecuperacion&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_token&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_usuario: number&lt;br/&gt;token_hash: string&lt;br/&gt;fecha_creacion: Date&lt;br/&gt;fecha_expiracion: Date&lt;br/&gt;usado: boolean&lt;br/&gt;fecha_uso: Date | null" vertex="1">
+          <mxGeometry height="226" width="340" x="1060" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Clase" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Clase&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_clase&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;nombre: string&lt;br/&gt;descripcion: string | null&lt;br/&gt;instructor: string | null&lt;br/&gt;estado: &#39;ACTIVO&#39; | &#39;INACTIVO&#39;&lt;br/&gt;fecha_creacion: Date&lt;br/&gt;fecha_actualizacion: Date" vertex="1">
+          <mxGeometry height="226" width="340" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="ProgramacionClase" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;ProgramacionClase&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_programacion&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_clase: number&lt;br/&gt;fecha: Date&lt;br/&gt;hora_inicio: string&lt;br/&gt;hora_fin: string&lt;br/&gt;cupo_maximo: number&lt;br/&gt;estado: &#39;PROGRAMADA&#39; | &#39;CANCELADA&#39; | &#39;FINALIZADA&#39;&lt;br/&gt;fecha_creacion: Date&lt;br/&gt;fecha_actualizacion: Date" vertex="1">
+          <mxGeometry height="266" width="340" x="430" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="Reserva" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Reserva&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_reserva&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_socio: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_programacion: number&lt;br/&gt;fecha_reserva: Date&lt;br/&gt;estado: &#39;ACTIVA&#39; | &#39;CANCELADA&#39; | &#39;FINALIZADA&#39;&lt;br/&gt;fecha_actualizacion: Date" vertex="1">
+          <mxGeometry height="206" width="340" x="810" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="Socio" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontFamily=Consolas;fontSize=12;strokeColor=#2c3a56;strokeWidth=1.5;fillColor=#eef1fa;shadow=0;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Socio&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;font color=&quot;#3d5a99&quot;&gt;&lt;b&gt;PK&lt;/b&gt;&lt;/font&gt; &lt;u&gt;&lt;b&gt;id_socio&lt;/b&gt;&lt;/u&gt;: number&lt;br/&gt;&lt;font color=&quot;#a15c2b&quot;&gt;&lt;b&gt;FK&lt;/b&gt;&lt;/font&gt; id_usuario: number | null&lt;br/&gt;codigo_socio: string&lt;br/&gt;nombres: string&lt;br/&gt;apellidos: string&lt;br/&gt;ci: string | null&lt;br/&gt;telefono: string | null&lt;br/&gt;correo: string | null&lt;br/&gt;fecha_nacimiento: Date | null&lt;br/&gt;fecha_inscripcion: Date&lt;br/&gt;estado: &#39;ACTIVO&#39; | &#39;INACTIVO&#39;&lt;br/&gt;fecha_creacion: Date&lt;br/&gt;fecha_actualizacion: Date" vertex="1">
+          <mxGeometry height="346" width="340" x="1250" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" edge="1" parent="1" source="Rol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="Usuario" value="1 → 1..N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="Usuario" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="TokenRecuperacion" value="1 → 0..N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="Usuario" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="Socio" value="1 → 0..1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="Clase" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="ProgramacionClase" value="1 → 1..N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="ProgramacionClase" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="Reserva" value="1 → 1..N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="Socio" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#3d5a99;fontColor=#3d5a99;fontSize=11;labelBackgroundColor=#ffffff;jettySize=auto;orthogonalLoop=1;" target="Reserva" value="1 → 0..N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,10 +1,14 @@
 import { findProgramacionForUpdate } from "../repositories/programacion.repository.js";
 import {
+  cancelReservaById,
   countActiveReservasForUpdate,
   findActiveReservaForUpdate,
+  findReservaForUpdate,
+  findReservasBySocio,
   findSocioByUsuarioId,
   getClient,
   insertReserva,
+  type ReservaListadoRecord,
   type ReservaRecord,
 } from "../repositories/reserva.repository.js";
 import type { CreateReservaInput } from "../validators/reserva.validator.js";
@@ -94,6 +98,65 @@ export async function registerReserva(
     await client.query("COMMIT");
 
     return reserva;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function listReservasSocio(
+  idUsuarioAutenticado: number,
+): Promise<ReservaListadoRecord[]> {
+  const socio = await findSocioByUsuarioId(idUsuarioAutenticado);
+
+  if (!socio) {
+    throw new ReservaError(
+      403,
+      "La cuenta autenticada no está vinculada a ningún socio",
+    );
+  }
+
+  return findReservasBySocio(socio.id_socio);
+}
+
+export async function cancelReserva(
+  idUsuarioAutenticado: number,
+  idReserva: number,
+): Promise<ReservaRecord> {
+  const socio = await findSocioByUsuarioId(idUsuarioAutenticado);
+
+  if (!socio) {
+    throw new ReservaError(
+      403,
+      "La cuenta autenticada no está vinculada a ningún socio",
+    );
+  }
+
+  const client = await getClient();
+
+  try {
+    await client.query("BEGIN");
+
+    const reserva = await findReservaForUpdate(client, idReserva, socio.id_socio);
+
+    if (!reserva) {
+      throw new ReservaError(404, "La reserva seleccionada no existe");
+    }
+
+    if (reserva.estado !== "ACTIVA") {
+      throw new ReservaError(
+        409,
+        "Solo se puede cancelar una reserva con estado ACTIVA",
+      );
+    }
+
+    const cancelada = await cancelReservaById(client, idReserva);
+
+    await client.query("COMMIT");
+
+    return cancelada;
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

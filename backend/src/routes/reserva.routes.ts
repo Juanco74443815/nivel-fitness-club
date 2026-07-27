@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { createReservaController } from "../controllers/reserva.controller.js";
+import {
+  cancelReservaController,
+  createReservaController,
+  listReservasController,
+} from "../controllers/reserva.controller.js";
 import {
   authorizeRoles,
   requireAuthentication,
@@ -7,9 +11,23 @@ import {
 
 export const reservaRouter = Router();
 
+reservaRouter.get(
+  "/",
+  requireAuthentication,
+  authorizeRoles("Socio"),
+  listReservasController,
+);
+
 reservaRouter.post(
   "/",
   requireAuthentication,
   authorizeRoles("Socio"),
   createReservaController,
+);
+
+reservaRouter.patch(
+  "/:id/cancel",
+  requireAuthentication,
+  authorizeRoles("Socio"),
+  cancelReservaController,
 );

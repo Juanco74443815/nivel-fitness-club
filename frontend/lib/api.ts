@@ -402,3 +402,149 @@ export function crearReserva(
     body: JSON.stringify({ id_programacion: idProgramacion }),
   });
 }
+
+export interface ReservaListado {
+  id_reserva: number;
+  id_programacion: number;
+  id_clase: number;
+  clase_nombre: string;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  fecha_reserva: string;
+  estado: string;
+  fecha_actualizacion: string;
+}
+
+export function listMisReservas(token: string): Promise<ReservaListado[]> {
+  return request<ReservaListado[]>("/api/reservas", { token });
+}
+
+export function cancelarReserva(
+  token: string,
+  idReserva: number,
+): Promise<Reserva> {
+  return request<Reserva>(`/api/reservas/${idReserva}/cancel`, {
+    method: "PATCH",
+    token,
+  });
+}
+
+export interface PlanMembresia {
+  id_plan: number;
+  nombre: string;
+  descripcion: string | null;
+  duracion_dias: number;
+  precio: string;
+  estado: string;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export function listPlanesMembresia(
+  token: string,
+  filtros: { estado?: string } = {},
+): Promise<PlanMembresia[]> {
+  const params = new URLSearchParams();
+  if (filtros.estado) params.set("estado", filtros.estado);
+  const query = params.toString();
+
+  return request<PlanMembresia[]>(
+    `/api/planes-membresia${query ? `?${query}` : ""}`,
+    { token },
+  );
+}
+
+export interface CrearPlanMembresiaInput {
+  nombre: string;
+  descripcion?: string | null;
+  duracion_dias: number;
+  precio: number;
+}
+
+export function crearPlanMembresia(
+  token: string,
+  input: CrearPlanMembresiaInput,
+): Promise<PlanMembresia> {
+  return request<PlanMembresia>("/api/planes-membresia", {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export function actualizarPlanMembresia(
+  token: string,
+  idPlan: number,
+  input: Partial<CrearPlanMembresiaInput>,
+): Promise<PlanMembresia> {
+  return request<PlanMembresia>(`/api/planes-membresia/${idPlan}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export function desactivarPlanMembresia(
+  token: string,
+  idPlan: number,
+): Promise<PlanMembresia> {
+  return request<PlanMembresia>(`/api/planes-membresia/${idPlan}/deactivate`, {
+    method: "PATCH",
+    token,
+  });
+}
+
+export interface Membresia {
+  id_membresia: number;
+  id_socio: number;
+  socio_nombres: string;
+  socio_apellidos: string;
+  codigo_socio: string;
+  id_plan: number;
+  plan_nombre: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado: string;
+  motivo_anulacion: string | null;
+  proxima_a_vencer: boolean;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export function listMembresias(token: string): Promise<Membresia[]> {
+  return request<Membresia[]>("/api/membresias", { token });
+}
+
+export function crearMembresia(
+  token: string,
+  input: { id_socio: number; id_plan: number; fecha_inicio: string },
+): Promise<Membresia> {
+  return request<Membresia>("/api/membresias", {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export function renovarMembresia(
+  token: string,
+  idMembresia: number,
+): Promise<Membresia> {
+  return request<Membresia>(`/api/membresias/${idMembresia}/renovar`, {
+    method: "PATCH",
+    token,
+  });
+}
+
+export function cambiarEstadoMembresia(
+  token: string,
+  idMembresia: number,
+  input: { estado: string; motivo_anulacion?: string },
+): Promise<Membresia> {
+  return request<Membresia>(`/api/membresias/${idMembresia}/estado`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
+  });
+}

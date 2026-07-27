@@ -94,3 +94,88 @@ export async function insertReserva(
 
   return result.rows[0];
 }
+
+export interface ReservaListadoRecord extends QueryResultRow {
+  id_reserva: number;
+  id_programacion: number;
+  id_clase: number;
+  clase_nombre: string;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  fecha_reserva: Date;
+  estado: string;
+  fecha_actualizacion: Date;
+}
+
+export async function findReservasBySocio(
+  idSocio: number,
+): Promise<ReservaListadoRecord[]> {
+  const result = await pool.query<ReservaListadoRecord>(
+    `
+      SELECT
+        r.id_reserva,
+        r.id_programacion,
+        c.id_clase,
+        c.nombre AS clase_nombre,
+        p.fecha,
+        p.hora_inicio,
+        p.hora_fin,
+        r.fecha_reserva,
+        r.estado,
+        r.fecha_actualizacion
+      FROM reservas r
+      INNER JOIN programaciones_clase p ON p.id_programacion = r.id_programacion
+      INNER JOIN clases c ON c.id_clase = p.id_clase
+      WHERE r.id_socio = $1
+      ORDER BY p.fecha DESC, p.hora_inicio DESC
+    `,
+    [idSocio],
+  );
+
+  return result.rows;
+}
+
+export async function findReservaForUpdate(
+  client: PoolClient,
+  idReserva: number,
+  idSocio: number,
+): Promise<{ id_reserva: number; estado: string } | null> {
+  const result = await client.query<{ id_reserva: number; estado: string }>(
+    `
+      SELECT id_reserva, estado
+      FROM reservas
+      WHERE id_reserva = $1
+        AND id_socio = $2
+      FOR UPDATE
+    `,
+    [idReserva, idSocio],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function cancelReservaById(
+  client: PoolClient,
+  idReserva: number,
+): Promise<ReservaRecord> {
+  const result = await client.query<ReservaRecord>(
+    `
+      UPDATE reservas
+      SET
+        estado = 'CANCELADA',
+        fecha_actualizacion = CURRENT_TIMESTAMP
+      WHERE id_reserva = $1
+      RETURNING
+        id_reserva,
+        id_socio,
+        id_programacion,
+        fecha_reserva,
+        estado,
+        fecha_actualizacion
+    `,
+    [idReserva],
+  );
+
+  return result.rows[0];
+}
