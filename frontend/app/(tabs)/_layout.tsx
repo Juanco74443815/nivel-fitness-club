@@ -90,6 +90,30 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="panel"
+        options={{
+          title: 'Panel',
+          href: esAdministrador ? undefined : null,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gauge" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="auditoria"
+        options={{
+          title: 'Auditoría',
+          href: esAdministrador ? undefined : null,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet.rectangle" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="nutricion"
+        options={{
+          title: 'Nutrición',
+          href: usuario?.rol === 'Socio' ? undefined : null,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="fork.knife" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

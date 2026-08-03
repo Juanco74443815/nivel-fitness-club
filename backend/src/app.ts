@@ -17,6 +17,9 @@ import { planMembresiaRouter } from "./routes/plan-membresia.routes.js";
 import { membresiaRouter } from "./routes/membresia.routes.js";
 import { pagoRouter } from "./routes/pago.routes.js";
 import { reporteRouter } from "./routes/reporte.routes.js";
+import { auditoriaRouter } from "./routes/auditoria.routes.js";
+import { indicadorRouter } from "./routes/indicador.routes.js";
+import { nutricionRouter } from "./routes/nutricion.routes.js";
 
 export const app = express();
 
@@ -35,6 +38,9 @@ app.use("/api/planes-membresia", planMembresiaRouter);
 app.use("/api/membresias", membresiaRouter);
 app.use("/api/pagos", pagoRouter);
 app.use("/api/reportes", reporteRouter);
+app.use("/api/auditoria", auditoriaRouter);
+app.use("/api/indicadores", indicadorRouter);
+app.use("/api/nutricion", nutricionRouter);
 
 app.use("/api/auth", authRouter);
 

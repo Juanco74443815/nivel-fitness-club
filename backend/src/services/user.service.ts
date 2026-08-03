@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { registrarAuditoria } from "./auditoria.service.js";
 import {
   countActiveAdministrators,
   createUser,
@@ -192,7 +193,17 @@ export async function changeUserRole(
     }
   }
 
-  return updateUserRoleById(idUsuario, input.id_rol);
+  const updated = await updateUserRoleById(idUsuario, input.id_rol);
+
+  await registrarAuditoria({
+    idUsuario: actingUserId,
+    accion: "Cambio de rol de usuario",
+    entidadAfectada: "usuarios",
+    idRegistroAfectado: idUsuario,
+    detalle: `Rol anterior: ${currentUser.rol}. Rol nuevo: ${role.nombre}.`,
+  });
+
+  return updated;
 }
 
 export async function deactivateUser(

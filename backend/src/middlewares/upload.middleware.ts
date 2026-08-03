@@ -51,3 +51,9 @@ export const uploadComprobante = createUploadMiddleware({
   allowedMimeTypes: ["image/jpeg", "image/png", "application/pdf"],
   maxSizeBytes: 5 * 1024 * 1024,
 });
+
+export const uploadFotoAlimento = createUploadMiddleware({
+  subfolder: "alimentos",
+  allowedMimeTypes: ["image/jpeg", "image/png"],
+  maxSizeBytes: 5 * 1024 * 1024,
+});

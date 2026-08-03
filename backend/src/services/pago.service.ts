@@ -1,3 +1,4 @@
+import { registrarAuditoria } from "./auditoria.service.js";
 import { findMembresiaById } from "../repositories/membresia.repository.js";
 import { findSocioByUsuarioId } from "../repositories/reserva.repository.js";
 import { findSocioById } from "../repositories/socio.repository.js";
@@ -162,10 +163,22 @@ export async function actualizarEstadoPago(
     );
   }
 
-  return updateEstadoPago({
+  const actualizado = await updateEstadoPago({
     idPago,
     estado: input.estado,
     observaciones: input.estado === "VERIFICADO" ? null : input.motivo ?? null,
     verificadoPor: actorUserId,
   });
+
+  if (input.estado === "ANULADO") {
+    await registrarAuditoria({
+      idUsuario: actorUserId,
+      accion: "Anulación de pago",
+      entidadAfectada: "pagos",
+      idRegistroAfectado: idPago,
+      detalle: `Motivo: ${input.motivo}`,
+    });
+  }
+
+  return actualizado;
 }

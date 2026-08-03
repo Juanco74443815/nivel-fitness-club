@@ -677,3 +677,94 @@ export function generarReporte(
     token,
   });
 }
+
+export interface Indicadores {
+  socios_activos: number;
+  membresias_vigentes: number;
+  reservas_hoy: number;
+  ingresos_mes: number;
+}
+
+export function obtenerIndicadores(token: string): Promise<Indicadores> {
+  return request<Indicadores>('/api/indicadores', { token });
+}
+
+export interface RegistroAuditoria {
+  id_auditoria: number;
+  id_usuario: number;
+  usuario_nombres: string;
+  usuario_apellidos: string;
+  accion: string;
+  entidad_afectada: string;
+  id_registro_afectado: number | null;
+  fecha: string;
+  detalle: string | null;
+}
+
+export function listAuditoria(
+  token: string,
+  filtros: { id_usuario?: number; desde?: string; hasta?: string } = {},
+): Promise<RegistroAuditoria[]> {
+  const params = new URLSearchParams();
+  if (filtros.id_usuario) params.set('id_usuario', String(filtros.id_usuario));
+  if (filtros.desde) params.set('desde', filtros.desde);
+  if (filtros.hasta) params.set('hasta', filtros.hasta);
+  const query = params.toString();
+
+  return request<RegistroAuditoria[]>(
+    `/api/auditoria${query ? `?${query}` : ''}`,
+    { token },
+  );
+}
+
+export interface ConsultaNutricional {
+  id_consulta: number;
+  id_socio: number;
+  imagen_url: string;
+  alimentos_detectados: string;
+  calorias_estimadas: string | null;
+  proteinas_g: string | null;
+  carbohidratos_g: string | null;
+  grasas_g: string | null;
+  estado: string;
+  fecha_consulta: string;
+}
+
+export function listMisConsultasNutricionales(
+  token: string,
+): Promise<ConsultaNutricional[]> {
+  return request<ConsultaNutricional[]>('/api/nutricion', { token });
+}
+
+export async function cargarFotoAlimento(
+  token: string,
+  archivo: ArchivoParaSubir,
+): Promise<ConsultaNutricional> {
+  const formData = new FormData();
+
+  if (archivo.file) {
+    formData.append('foto', archivo.file, archivo.name);
+  } else {
+    formData.append(
+      'foto',
+      { uri: archivo.uri, name: archivo.name, type: archivo.mimeType } as unknown as Blob,
+    );
+  }
+
+  const response = await fetch(`${API_URL}/api/nutricion`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+
+  const body = (await response.json().catch(() => null)) as ApiEnvelope<ConsultaNutricional> | null;
+
+  if (!response.ok || !body || body.status !== 'ok') {
+    throw new ApiError(
+      response.status,
+      body?.message ?? 'No se pudo procesar la fotografía',
+    );
+  }
+
+  return body.data as ConsultaNutricional;
+}
