@@ -29,3 +29,6 @@ PROJECT_CONTEXT_PART2.md
 
 # Configuracion local de Claude Code (no es codigo del proyecto)
 .claude/skills/
+
+# Archivos subidos por usuarios (comprobantes de pago, fotos de alimentos)
+backend/uploads/

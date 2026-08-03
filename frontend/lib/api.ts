@@ -1,4 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
 export class ApiError extends Error {
   constructor(
@@ -546,5 +546,134 @@ export function cambiarEstadoMembresia(
     method: "PATCH",
     token,
     body: JSON.stringify(input),
+  });
+}
+
+export interface Pago {
+  id_pago: number;
+  id_socio: number;
+  socio_nombres: string;
+  socio_apellidos: string;
+  codigo_socio: string;
+  id_membresia: number | null;
+  plan_nombre: string | null;
+  monto: string;
+  metodo_pago: string;
+  comprobante_url: string | null;
+  estado: string;
+  fecha_pago: string;
+  observaciones: string | null;
+  verificado_por: number | null;
+  verificador_nombres: string | null;
+  verificador_apellidos: string | null;
+  fecha_actualizacion: string;
+}
+
+export function listPagos(
+  token: string,
+  filtros: { estado?: string; id_socio?: number } = {},
+): Promise<Pago[]> {
+  const params = new URLSearchParams();
+  if (filtros.estado) params.set('estado', filtros.estado);
+  if (filtros.id_socio) params.set('id_socio', String(filtros.id_socio));
+  const query = params.toString();
+
+  return request<Pago[]>(`/api/pagos${query ? `?${query}` : ''}`, { token });
+}
+
+export function listMisPagos(token: string): Promise<Pago[]> {
+  return request<Pago[]>('/api/pagos/mios', { token });
+}
+
+export interface RegistrarPagoInput {
+  id_socio: number;
+  id_membresia?: number;
+  monto: number;
+  metodo_pago: string;
+}
+
+export function registrarPago(
+  token: string,
+  input: RegistrarPagoInput,
+): Promise<Pago> {
+  return request<Pago>('/api/pagos', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export function actualizarEstadoPago(
+  token: string,
+  idPago: number,
+  input: { estado: string; motivo?: string },
+): Promise<Pago> {
+  return request<Pago>(`/api/pagos/${idPago}/estado`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export interface ArchivoParaSubir {
+  uri: string;
+  name: string;
+  mimeType: string;
+  file?: File;
+}
+
+// Distinto de `request`: el navegador/RN necesita fijar el Content-Type con
+// el boundary del multipart automáticamente, así que no se puede pasar por
+// el helper genérico (que siempre fija application/json).
+export async function cargarComprobantePago(
+  token: string,
+  idPago: number,
+  archivo: ArchivoParaSubir,
+): Promise<Pago> {
+  const formData = new FormData();
+
+  if (archivo.file) {
+    formData.append('comprobante', archivo.file, archivo.name);
+  } else {
+    formData.append(
+      'comprobante',
+      { uri: archivo.uri, name: archivo.name, type: archivo.mimeType } as unknown as Blob,
+    );
+  }
+
+  const response = await fetch(`${API_URL}/api/pagos/${idPago}/comprobante`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+
+  const body = (await response.json().catch(() => null)) as ApiEnvelope<Pago> | null;
+
+  if (!response.ok || !body || body.status !== 'ok') {
+    throw new ApiError(
+      response.status,
+      body?.message ?? 'No se pudo cargar el comprobante',
+    );
+  }
+
+  return body.data as Pago;
+}
+
+export interface ReporteResultado {
+  tipo: string;
+  desde: string;
+  hasta: string;
+  datos: Record<string, unknown>[];
+  resumen: Record<string, number>;
+}
+
+export function generarReporte(
+  token: string,
+  filtros: { tipo: string; desde: string; hasta: string },
+): Promise<ReporteResultado> {
+  const params = new URLSearchParams(filtros);
+
+  return request<ReporteResultado>(`/api/reportes?${params.toString()}`, {
+    token,
   });
 }

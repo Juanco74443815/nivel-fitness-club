@@ -22,6 +22,8 @@ const MAPPING = {
   'checkmark.circle.fill': 'check-circle',
   'doc.text.fill': 'description',
   'creditcard.fill': 'card-membership',
+  'dollarsign.circle.fill': 'attach-money',
+  'chart.bar.fill': 'bar-chart',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
