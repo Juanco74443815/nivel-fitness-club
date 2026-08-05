@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform, StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -8,7 +9,8 @@ import { useSession } from '@/context/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const { usuario } = useSession();
   const esAdministrador = usuario?.rol === 'Administrador';
   const puedeGestionarSocios =
@@ -17,15 +19,27 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: colors.tabIconSelected,
+        tabBarInactiveTintColor: colors.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+          borderTopWidth: StyleSheetHairline,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -33,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Socios',
           href: puedeGestionarSocios ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.3.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -41,7 +55,7 @@ export default function TabLayout() {
         options={{
           title: 'Usuarios',
           href: esAdministrador ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.2.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.2.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -49,7 +63,7 @@ export default function TabLayout() {
         options={{
           title: 'Clases',
           href: esAdministrador ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="calendar" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -57,7 +71,7 @@ export default function TabLayout() {
         options={{
           title: 'Reservas',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="checkmark.circle.fill" color={color} />
+            <IconSymbol size={26} name="checkmark.circle.fill" color={color} />
           ),
         }}
       />
@@ -65,21 +79,21 @@ export default function TabLayout() {
         name="planes-membresia"
         options={{
           title: 'Planes',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="doc.text.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="membresias"
         options={{
           title: 'Membresías',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="creditcard.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="creditcard.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="pagos"
         options={{
           title: 'Pagos',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="dollarsign.circle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="dollarsign.circle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -87,7 +101,7 @@ export default function TabLayout() {
         options={{
           title: 'Reportes',
           href: esAdministrador ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -95,7 +109,7 @@ export default function TabLayout() {
         options={{
           title: 'Panel',
           href: esAdministrador ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gauge" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="gauge" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -103,7 +117,7 @@ export default function TabLayout() {
         options={{
           title: 'Auditoría',
           href: esAdministrador ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet.rectangle" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet.rectangle" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -111,9 +125,11 @@ export default function TabLayout() {
         options={{
           title: 'Nutrición',
           href: usuario?.rol === 'Socio' ? undefined : null,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="fork.knife" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="fork.knife" color={color} />,
         }}
       />
     </Tabs>
   );
 }
+
+const StyleSheetHairline = Platform.OS === 'web' ? 1 : StyleSheet.hairlineWidth;

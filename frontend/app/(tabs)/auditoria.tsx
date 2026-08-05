@@ -2,16 +2,17 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import { ApiError, listAuditoria, type RegistroAuditoria } from '@/lib/api';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function AuditoriaScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const esAdministrador = usuario?.rol === 'Administrador';
 
   const [registros, setRegistros] = useState<RegistroAuditoria[]>([]);
@@ -65,15 +66,15 @@ export default function AuditoriaScreen() {
 
   if (!esAdministrador) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Auditoría</ThemedText>
         <ThemedText style={styles.spacing}>No tienes permisos para ver esta sección.</ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen wide>
       <ThemedText type="title" style={styles.spacing}>
         Registro de auditoría
       </ThemedText>
@@ -84,28 +85,38 @@ export default function AuditoriaScreen() {
           onChangeText={setDesde}
           onSubmitEditing={() => cargar(true)}
           placeholder="Desde AAAA-MM-DD"
-          placeholderTextColor={Colors[colorScheme].icon}
-          style={[styles.input, styles.inputFecha, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+          placeholderTextColor={colors.textMuted}
+          style={[
+            styles.input,
+            styles.inputFecha,
+            { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
+          ]}
         />
         <TextInput
           value={hasta}
           onChangeText={setHasta}
           onSubmitEditing={() => cargar(true)}
           placeholder="Hasta AAAA-MM-DD"
-          placeholderTextColor={Colors[colorScheme].icon}
-          style={[styles.input, styles.inputFecha, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+          placeholderTextColor={colors.textMuted}
+          style={[
+            styles.input,
+            styles.inputFecha,
+            { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
+          ]}
         />
         <Pressable
           onPress={() => cargar(true)}
-          style={[styles.filtrarBoton, { borderColor: Colors[colorScheme].tint }]}>
-          <ThemedText style={{ color: Colors[colorScheme].tint }}>Filtrar</ThemedText>
+          style={[styles.filtrarBoton, { borderColor: colors.tint }]}>
+          <ThemedText style={{ color: colors.tint, fontWeight: '700' }}>Filtrar</ThemedText>
         </Pressable>
       </View>
 
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={registros}
@@ -115,64 +126,81 @@ export default function AuditoriaScreen() {
             <ThemedText style={styles.spacing}>No se encontraron registros.</ThemedText>
           }
           renderItem={({ item }) => (
-            <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
-              <ThemedText type="defaultSemiBold">{item.accion}</ThemedText>
-              <ThemedText>
-                Usuario: {item.usuario_nombres} {item.usuario_apellidos}
+            <View
+              style={[
+                styles.row,
+                { backgroundColor: colors.surface },
+                cardShadow(colorScheme),
+              ]}>
+              <View style={styles.rowHeader}>
+                <ThemedText type="defaultSemiBold">{item.accion}</ThemedText>
+                <View style={[styles.entidadPill, { backgroundColor: colors.surfaceAlt }]}>
+                  <ThemedText style={{ color: colors.textMuted, fontSize: 11, fontWeight: '700' }}>
+                    {item.entidad_afectada.toUpperCase()}
+                  </ThemedText>
+                </View>
+              </View>
+              <ThemedText style={{ color: colors.textMuted }}>
+                {item.usuario_nombres} {item.usuario_apellidos}
+                {item.id_registro_afectado !== null ? ` · registro #${item.id_registro_afectado}` : ''}
               </ThemedText>
-              <ThemedText>Entidad: {item.entidad_afectada}</ThemedText>
-              {item.id_registro_afectado !== null && (
-                <ThemedText>Registro afectado: #{item.id_registro_afectado}</ThemedText>
-              )}
-              <ThemedText>Fecha: {item.fecha.slice(0, 19).replace('T', ' ')}</ThemedText>
-              {item.detalle && <ThemedText>Detalle: {item.detalle}</ThemedText>}
+              <ThemedText style={{ color: colors.textMuted, fontSize: 12 }}>
+                {item.fecha.slice(0, 19).replace('T', ' ')}
+              </ThemedText>
+              {item.detalle && <ThemedText>{item.detalle}</ThemedText>}
             </View>
           )}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   filaFechas: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
     alignItems: 'center',
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 13,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   inputFecha: {
     flex: 1,
   },
   filtrarBoton: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
-  error: {
-    color: '#d92626',
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  entidadPill: {
+    borderRadius: Radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
 });

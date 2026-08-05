@@ -11,8 +11,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   API_URL,
@@ -22,12 +23,13 @@ import {
   type ConsultaNutricional,
 } from '@/lib/api';
 import { notify } from '@/lib/confirm';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function NutricionScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const esSocio = usuario?.rol === 'Socio';
 
   const [consultas, setConsultas] = useState<ConsultaNutricional[]>([]);
@@ -122,31 +124,33 @@ export default function NutricionScreen() {
 
   if (!esSocio) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Nutrición</ThemedText>
         <ThemedText style={styles.spacing}>No tienes permisos para ver esta sección.</ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen>
       <ThemedText type="title" style={styles.spacing}>
         Estimación nutricional
       </ThemedText>
-      <ThemedText style={styles.spacing}>
-        Estimación referencial generada por inteligencia artificial. No reemplaza la evaluación de
-        un nutricionista ni constituye un diagnóstico médico.
-      </ThemedText>
+      <View style={[styles.disclaimer, { backgroundColor: colors.warningMuted }]}>
+        <ThemedText style={{ color: colors.warning, fontSize: 13, lineHeight: 18 }}>
+          Estimación referencial generada por inteligencia artificial. No reemplaza la
+          evaluación de un nutricionista ni constituye un diagnóstico médico.
+        </ThemedText>
+      </View>
 
       <Pressable
         disabled={subiendo}
         onPress={handleCargarFoto}
-        style={[styles.boton, { backgroundColor: Colors[colorScheme].tint }]}>
+        style={[styles.boton, { backgroundColor: colors.tint }]}>
         {subiendo ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.tintOn} />
         ) : (
-          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+          <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
             + Cargar fotografía de alimento
           </ThemedText>
         )}
@@ -155,7 +159,9 @@ export default function NutricionScreen() {
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={consultas}
@@ -166,58 +172,120 @@ export default function NutricionScreen() {
             <ThemedText style={styles.spacing}>No has cargado ninguna fotografía todavía.</ThemedText>
           }
           renderItem={({ item }) => (
-            <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+            <View
+              style={[
+                styles.row,
+                { backgroundColor: colors.surface },
+                cardShadow(colorScheme),
+              ]}>
               <Image source={{ uri: `${API_URL}${item.imagen_url}` }} style={styles.imagen} />
-              <ThemedText type="defaultSemiBold">{item.alimentos_detectados}</ThemedText>
-              {item.estado === 'COMPLETADO' && (
-                <>
-                  <ThemedText>Calorías: {item.calorias_estimadas} kcal</ThemedText>
-                  <ThemedText>Proteínas: {item.proteinas_g} g</ThemedText>
-                  <ThemedText>Carbohidratos: {item.carbohidratos_g} g</ThemedText>
-                  <ThemedText>Grasas: {item.grasas_g} g</ThemedText>
-                </>
-              )}
-              <ThemedText>Estado: {item.estado}</ThemedText>
-              <ThemedText>Fecha: {item.fecha_consulta.slice(0, 19).replace('T', ' ')}</ThemedText>
+              <View style={styles.rowContent}>
+                <View style={styles.rowHeader}>
+                  <ThemedText type="defaultSemiBold" style={styles.flexShrink}>
+                    {item.alimentos_detectados}
+                  </ThemedText>
+                  <Badge estado={item.estado} />
+                </View>
+                {item.estado === 'COMPLETADO' && (
+                  <View style={styles.macros}>
+                    <View style={styles.macro}>
+                      <ThemedText style={[styles.macroValor, { color: colors.tint }]}>
+                        {item.calorias_estimadas}
+                      </ThemedText>
+                      <ThemedText style={[styles.macroLabel, { color: colors.textMuted }]}>
+                        kcal
+                      </ThemedText>
+                    </View>
+                    <View style={styles.macro}>
+                      <ThemedText style={styles.macroValor}>{item.proteinas_g} g</ThemedText>
+                      <ThemedText style={[styles.macroLabel, { color: colors.textMuted }]}>
+                        Proteína
+                      </ThemedText>
+                    </View>
+                    <View style={styles.macro}>
+                      <ThemedText style={styles.macroValor}>{item.carbohidratos_g} g</ThemedText>
+                      <ThemedText style={[styles.macroLabel, { color: colors.textMuted }]}>
+                        Carbos
+                      </ThemedText>
+                    </View>
+                    <View style={styles.macro}>
+                      <ThemedText style={styles.macroValor}>{item.grasas_g} g</ThemedText>
+                      <ThemedText style={[styles.macroLabel, { color: colors.textMuted }]}>
+                        Grasas
+                      </ThemedText>
+                    </View>
+                  </View>
+                )}
+                <ThemedText style={{ color: colors.textMuted, fontSize: 12 }}>
+                  {item.fecha_consulta.slice(0, 19).replace('T', ' ')}
+                </ThemedText>
+              </View>
             </View>
           )}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   spacingTop: {
-    marginTop: 12,
+    marginTop: Spacing.md,
+  },
+  disclaimer: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   boton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  error: {
-    color: '#d92626',
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    gap: 4,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
   },
   imagen: {
     width: '100%',
     height: 160,
-    borderRadius: 8,
-    marginBottom: 8,
+  },
+  rowContent: {
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  flexShrink: {
+    flexShrink: 1,
+  },
+  macros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.lg,
+  },
+  macro: {
+    minWidth: 60,
+  },
+  macroValor: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  macroLabel: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
 });

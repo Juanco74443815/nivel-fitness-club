@@ -7,16 +7,17 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  View,
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { ApiError, forgotPassword, resetPassword } from '@/lib/api';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function RecuperarPasswordScreen() {
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   const [correo, setCorreo] = useState('');
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false);
@@ -88,127 +89,138 @@ export default function RecuperarPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: colors.brandBackground }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
-          Recuperar contraseña
-        </ThemedText>
-
-        <ThemedText type="defaultSemiBold">1. Solicitar código</ThemedText>
-        <ThemedText style={styles.hint}>
-          Ingresa tu correo. Si está registrado y activo, se generarán
-          instrucciones para restablecer la contraseña.
-        </ThemedText>
-
-        <TextInput
-          value={correo}
-          onChangeText={setCorreo}
-          placeholder="Correo electrónico"
-          placeholderTextColor={Colors[colorScheme].icon}
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
+      <View style={styles.outer}>
+        <View
           style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        {errorSolicitud ? (
-          <ThemedText style={styles.error}>{errorSolicitud}</ThemedText>
-        ) : null}
-        {mensajeSolicitud ? (
-          <ThemedText style={styles.success}>{mensajeSolicitud}</ThemedText>
-        ) : null}
-
-        <Pressable
-          onPress={handleSolicitar}
-          disabled={enviandoSolicitud}
-          style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}>
-          {enviandoSolicitud ? (
-            <ActivityIndicator color={colorScheme === 'dark' ? '#000' : '#fff'} />
-          ) : (
-            <ThemedText
-              style={[
-                styles.buttonText,
-                { color: colorScheme === 'dark' ? '#000' : '#fff' },
-              ]}>
-              Enviar instrucciones
-            </ThemedText>
-          )}
-        </Pressable>
-
-        <ThemedText type="defaultSemiBold" style={styles.spacingTop}>
-          2. Restablecer con el código recibido
-        </ThemedText>
-
-        <TextInput
-          value={token}
-          onChangeText={setToken}
-          placeholder="Código de recuperación"
-          placeholderTextColor={Colors[colorScheme].icon}
-          autoCapitalize="none"
-          style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        <TextInput
-          value={passwordNueva}
-          onChangeText={setPasswordNueva}
-          placeholder="Nueva contraseña"
-          placeholderTextColor={Colors[colorScheme].icon}
-          secureTextEntry
-          style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        <TextInput
-          value={passwordConfirmacion}
-          onChangeText={setPasswordConfirmacion}
-          placeholder="Confirmar nueva contraseña"
-          placeholderTextColor={Colors[colorScheme].icon}
-          secureTextEntry
-          style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        {errorRestablecer ? (
-          <ThemedText style={styles.error}>{errorRestablecer}</ThemedText>
-        ) : null}
-        {mensajeRestablecer ? (
-          <ThemedText style={styles.success}>{mensajeRestablecer}</ThemedText>
-        ) : null}
-
-        <Pressable
-          onPress={handleRestablecer}
-          disabled={restableciendo}
-          style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}>
-          {restableciendo ? (
-            <ActivityIndicator color={colorScheme === 'dark' ? '#000' : '#fff'} />
-          ) : (
-            <ThemedText
-              style={[
-                styles.buttonText,
-                { color: colorScheme === 'dark' ? '#000' : '#fff' },
-              ]}>
-              Restablecer contraseña
-            </ThemedText>
-          )}
-        </Pressable>
-
-        <Link href="/sign-in" style={styles.link}>
-          <ThemedText style={{ color: Colors[colorScheme].tint }}>
-            Volver a iniciar sesión
+            styles.card,
+            { backgroundColor: colors.surface },
+            cardShadow(colorScheme),
+          ]}>
+          <ThemedText type="subtitle" style={styles.title}>
+            Recuperar contraseña
           </ThemedText>
-        </Link>
-      </ThemedView>
+
+          <View style={[styles.step, { borderColor: colors.border }]}>
+            <ThemedText style={[styles.stepLabel, { color: colors.tint }]}>PASO 1</ThemedText>
+            <ThemedText type="defaultSemiBold">Solicitar código</ThemedText>
+            <ThemedText style={[styles.hint, { color: colors.textMuted }]}>
+              Ingresa tu correo. Si está registrado y activo, se generarán
+              instrucciones para restablecer la contraseña.
+            </ThemedText>
+
+            <TextInput
+              value={correo}
+              onChangeText={setCorreo}
+              placeholder="Correo electrónico"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+
+            {errorSolicitud ? (
+              <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+                <ThemedText style={{ color: colors.danger }}>{errorSolicitud}</ThemedText>
+              </View>
+            ) : null}
+            {mensajeSolicitud ? (
+              <View style={[styles.messageBox, { backgroundColor: colors.successMuted }]}>
+                <ThemedText style={{ color: colors.success }}>{mensajeSolicitud}</ThemedText>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={handleSolicitar}
+              disabled={enviandoSolicitud}
+              style={[styles.button, { backgroundColor: colors.tint }]}>
+              {enviandoSolicitud ? (
+                <ActivityIndicator color={colors.tintOn} />
+              ) : (
+                <ThemedText style={[styles.buttonText, { color: colors.tintOn }]}>
+                  Enviar instrucciones
+                </ThemedText>
+              )}
+            </Pressable>
+          </View>
+
+          <View style={styles.step}>
+            <ThemedText style={[styles.stepLabel, { color: colors.tint }]}>PASO 2</ThemedText>
+            <ThemedText type="defaultSemiBold">Restablecer con el código recibido</ThemedText>
+
+            <TextInput
+              value={token}
+              onChangeText={setToken}
+              placeholder="Código de recuperación"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+
+            <TextInput
+              value={passwordNueva}
+              onChangeText={setPasswordNueva}
+              placeholder="Nueva contraseña"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+
+            <TextInput
+              value={passwordConfirmacion}
+              onChangeText={setPasswordConfirmacion}
+              placeholder="Confirmar nueva contraseña"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+
+            {errorRestablecer ? (
+              <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+                <ThemedText style={{ color: colors.danger }}>{errorRestablecer}</ThemedText>
+              </View>
+            ) : null}
+            {mensajeRestablecer ? (
+              <View style={[styles.messageBox, { backgroundColor: colors.successMuted }]}>
+                <ThemedText style={{ color: colors.success }}>{mensajeRestablecer}</ThemedText>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={handleRestablecer}
+              disabled={restableciendo}
+              style={[styles.button, { backgroundColor: colors.tint }]}>
+              {restableciendo ? (
+                <ActivityIndicator color={colors.tintOn} />
+              ) : (
+                <ThemedText style={[styles.buttonText, { color: colors.tintOn }]}>
+                  Restablecer contraseña
+                </ThemedText>
+              )}
+            </Pressable>
+          </View>
+
+          <Link href="/sign-in" style={styles.link}>
+            <ThemedText style={{ color: colors.tint, fontWeight: '600' }}>
+              Volver a iniciar sesión
+            </ThemedText>
+          </Link>
+        </View>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -217,50 +229,59 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  container: {
+  outer: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    gap: 10,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxl,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    gap: Spacing.lg,
   },
   title: {
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: Spacing.xs,
+  },
+  step: {
+    gap: Spacing.sm,
+    paddingBottom: Spacing.lg,
+    borderBottomWidth: 1,
+  },
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
   hint: {
-    opacity: 0.7,
     fontSize: 13,
-  },
-  spacingTop: {
-    marginTop: 20,
+    lineHeight: 18,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
   },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.sm,
+  },
   button: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 4,
   },
   buttonText: {
-    fontWeight: '600',
-  },
-  error: {
-    color: '#d92626',
-    textAlign: 'center',
-  },
-  success: {
-    color: '#2e9e4f',
-    textAlign: 'center',
+    fontWeight: '700',
+    fontSize: 15,
   },
   link: {
-    marginTop: 16,
     alignSelf: 'center',
   },
 });

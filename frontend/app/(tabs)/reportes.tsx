@@ -8,12 +8,12 @@ import {
   View,
 } from 'react-native';
 
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import { ApiError, generarReporte, type ReporteResultado } from '@/lib/api';
 import { notify } from '@/lib/confirm';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const TIPOS_REPORTE = ['socios', 'reservas', 'membresias', 'pagos'] as const;
@@ -30,6 +30,7 @@ function primerDiaMesIso(): string {
 export default function ReportesScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const esAdministrador = usuario?.rol === 'Administrador';
 
   const [tipo, setTipo] = useState<(typeof TIPOS_REPORTE)[number]>('pagos');
@@ -59,79 +60,113 @@ export default function ReportesScreen() {
 
   if (!esAdministrador) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Reportes</ThemedText>
         <ThemedText style={styles.spacing}>No tienes permisos para ver esta sección.</ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen wide>
       <ThemedText type="title" style={styles.spacing}>
         Reportes administrativos
       </ThemedText>
 
-      <ThemedText type="defaultSemiBold">Tipo de reporte</ThemedText>
-      <View style={styles.filtros}>
-        {TIPOS_REPORTE.map((t) => (
-          <Pressable
-            key={t}
-            onPress={() => setTipo(t)}
+      <View
+        style={[
+          styles.panel,
+          { backgroundColor: colors.surface },
+          cardShadow(colorScheme),
+        ]}>
+        <ThemedText style={[styles.label, { color: colors.textMuted }]}>
+          Tipo de reporte
+        </ThemedText>
+        <View style={styles.filtros}>
+          {TIPOS_REPORTE.map((t) => (
+            <Pressable
+              key={t}
+              onPress={() => setTipo(t)}
+              style={[
+                styles.chip,
+                {
+                  borderColor: tipo === t ? colors.tint : colors.border,
+                  backgroundColor: tipo === t ? colors.tint : colors.background,
+                },
+              ]}>
+              <ThemedText
+                style={{ color: tipo === t ? colors.tintOn : colors.text, fontSize: 13, fontWeight: '600' }}>
+                {t}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+
+        <ThemedText style={[styles.label, styles.spacingTop, { color: colors.textMuted }]}>
+          Rango de fechas
+        </ThemedText>
+        <View style={styles.filaFechas}>
+          <TextInput
+            value={desde}
+            onChangeText={setDesde}
+            placeholder="Desde AAAA-MM-DD"
+            placeholderTextColor={colors.textMuted}
             style={[
-              styles.chip,
-              {
-                borderColor: Colors[colorScheme].tint,
-                backgroundColor: tipo === t ? Colors[colorScheme].tint : 'transparent',
-              },
-            ]}>
-            <ThemedText style={{ color: tipo === t ? '#fff' : Colors[colorScheme].text, fontSize: 13 }}>
-              {t}
+              styles.input,
+              styles.inputFecha,
+              { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+            ]}
+          />
+          <TextInput
+            value={hasta}
+            onChangeText={setHasta}
+            placeholder="Hasta AAAA-MM-DD"
+            placeholderTextColor={colors.textMuted}
+            style={[
+              styles.input,
+              styles.inputFecha,
+              { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+            ]}
+          />
+        </View>
+
+        <Pressable
+          disabled={cargando}
+          onPress={handleGenerar}
+          style={[styles.guardarBoton, { backgroundColor: colors.tint }]}>
+          {cargando ? (
+            <ActivityIndicator color={colors.tintOn} />
+          ) : (
+            <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
+              Generar reporte
             </ThemedText>
-          </Pressable>
-        ))}
+          )}
+        </Pressable>
       </View>
-
-      <ThemedText type="defaultSemiBold" style={styles.spacingTop}>
-        Rango de fechas
-      </ThemedText>
-      <View style={styles.filaFechas}>
-        <TextInput
-          value={desde}
-          onChangeText={setDesde}
-          placeholder="Desde AAAA-MM-DD"
-          placeholderTextColor={Colors[colorScheme].icon}
-          style={[styles.input, styles.inputFecha, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        />
-        <TextInput
-          value={hasta}
-          onChangeText={setHasta}
-          placeholder="Hasta AAAA-MM-DD"
-          placeholderTextColor={Colors[colorScheme].icon}
-          style={[styles.input, styles.inputFecha, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        />
-      </View>
-
-      <Pressable
-        disabled={cargando}
-        onPress={handleGenerar}
-        style={[styles.guardarBoton, { backgroundColor: Colors[colorScheme].tint }]}>
-        {cargando ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>Generar reporte</ThemedText>
-        )}
-      </Pressable>
 
       {reporte && (
         <>
-          <View style={[styles.resumen, { borderColor: Colors[colorScheme].icon }]}>
-            <ThemedText type="defaultSemiBold">Resumen</ThemedText>
-            {Object.entries(reporte.resumen).map(([clave, valor]) => (
-              <ThemedText key={clave}>
-                {clave.replace(/_/g, ' ')}: {valor}
-              </ThemedText>
-            ))}
+          <View
+            style={[
+              styles.resumen,
+              { backgroundColor: colors.surfaceAlt },
+              cardShadow(colorScheme),
+            ]}>
+            <ThemedText type="defaultSemiBold" style={styles.spacingSmall}>
+              Resumen
+            </ThemedText>
+            <View style={styles.resumenGrid}>
+              {Object.entries(reporte.resumen).map(([clave, valor]) => (
+                <View key={clave} style={styles.resumenItem}>
+                  <ThemedText style={[styles.resumenValor, { color: colors.tint }]}>
+                    {valor}
+                  </ThemedText>
+                  <ThemedText style={[styles.resumenLabel, { color: colors.textMuted }]}>
+                    {clave.replace(/_/g, ' ')}
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
           </View>
 
           <FlatList
@@ -142,10 +177,18 @@ export default function ReportesScreen() {
               <ThemedText style={styles.spacing}>No hay datos en el periodo seleccionado.</ThemedText>
             }
             renderItem={({ item }) => (
-              <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+              <View
+                style={[
+                  styles.row,
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
+                ]}>
                 {Object.entries(item).map(([clave, valor]) => (
-                  <ThemedText key={clave} style={styles.filaDato}>
-                    {clave.replace(/_/g, ' ')}: {String(valor)}
+                  <ThemedText key={clave} style={[styles.filaDato, { color: colors.text }]}>
+                    <ThemedText style={{ color: colors.textMuted, fontSize: 13 }}>
+                      {clave.replace(/_/g, ' ')}:{' '}
+                    </ThemedText>
+                    {String(valor)}
                   </ThemedText>
                 ))}
               </View>
@@ -153,69 +196,91 @@ export default function ReportesScreen() {
           />
         </>
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
+  },
+  spacingSmall: {
+    marginBottom: Spacing.sm,
   },
   spacingTop: {
-    marginTop: 12,
+    marginTop: Spacing.md,
+  },
+  panel: {
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: Spacing.sm,
   },
   filtros: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 4,
+    gap: Spacing.sm,
     flexWrap: 'wrap',
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   filaFechas: {
     flexDirection: 'row',
-    gap: 8,
+    gap: Spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   inputFecha: {
     flex: 1,
   },
   guardarBoton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: Spacing.md,
   },
   resumen: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16,
-    gap: 4,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+  },
+  resumenGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.lg,
+  },
+  resumenItem: {
+    minWidth: 110,
+  },
+  resumenValor: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  resumenLabel: {
+    fontSize: 12,
+    textTransform: 'capitalize',
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    gap: 2,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: 4,
   },
   filaDato: {
     fontSize: 13,
+    textTransform: 'capitalize',
   },
 });

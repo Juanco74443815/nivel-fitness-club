@@ -10,8 +10,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   ApiError,
@@ -27,7 +28,7 @@ import {
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
 import { formatFecha } from '@/lib/format';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const ESTADOS = ['PENDIENTE', 'ACTIVA', 'VENCIDA', 'SUSPENDIDA', 'ANULADA'] as const;
@@ -35,6 +36,7 @@ const ESTADOS = ['PENDIENTE', 'ACTIVA', 'VENCIDA', 'SUSPENDIDA', 'ANULADA'] as c
 export default function MembresiasScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const puedeGestionar =
     usuario?.rol === 'Administrador' || usuario?.rol === 'Recepcionista';
   const puedeConsultar = puedeGestionar || usuario?.rol === 'Socio';
@@ -229,17 +231,17 @@ export default function MembresiasScreen() {
 
   if (!puedeConsultar) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Membresías</ThemedText>
         <ThemedText style={styles.spacing}>
           No tienes permisos para ver esta sección.
         </ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen wide>
       <ThemedText type="title" style={styles.spacing}>
         Membresías
       </ThemedText>
@@ -247,23 +249,28 @@ export default function MembresiasScreen() {
       {puedeGestionar && (
         <Pressable
           onPress={abrirFormularioNuevo}
-          style={[styles.nuevoBoton, { borderColor: Colors[colorScheme].tint }]}>
-          <ThemedText style={{ color: Colors[colorScheme].tint, fontWeight: '600' }}>
+          style={[styles.nuevoBoton, { borderColor: colors.tint }]}>
+          <ThemedText style={{ color: colors.tint, fontWeight: '700' }}>
             {mostrarFormularioNuevo ? 'Cancelar' : '+ Nueva membresía'}
           </ThemedText>
         </Pressable>
       )}
 
       {mostrarFormularioNuevo && (
-        <View style={[styles.formulario, { borderColor: Colors[colorScheme].icon }]}>
+        <View
+          style={[
+            styles.formulario,
+            { backgroundColor: colors.surface },
+            cardShadow(colorScheme),
+          ]}>
           <ThemedText type="defaultSemiBold">1. Buscar socio</ThemedText>
           <TextInput
             value={busquedaSocio}
             onChangeText={setBusquedaSocio}
             onSubmitEditing={handleBuscarSocio}
             placeholder="Nombre, CI o código del socio"
-            placeholderTextColor={Colors[colorScheme].icon}
-            style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
           />
           {socioSeleccionado ? (
             <ThemedText>
@@ -278,7 +285,7 @@ export default function MembresiasScreen() {
                   setSocioSeleccionado(s);
                   setResultadosSocio([]);
                 }}
-                style={[styles.resultadoRow, { borderColor: Colors[colorScheme].icon }]}>
+                style={[styles.resultadoRow, { borderColor: colors.border }]}>
                 <ThemedText>
                   {s.nombres} {s.apellidos} ({s.codigo_socio})
                 </ThemedText>
@@ -297,20 +304,16 @@ export default function MembresiasScreen() {
                 style={[
                   styles.chip,
                   {
-                    borderColor: Colors[colorScheme].tint,
+                    borderColor: colors.tint,
                     backgroundColor:
-                      planSeleccionado?.id_plan === p.id_plan
-                        ? Colors[colorScheme].tint
-                        : 'transparent',
+                      planSeleccionado?.id_plan === p.id_plan ? colors.tint : colors.background,
                   },
                 ]}>
                 <ThemedText
                   style={{
-                    color:
-                      planSeleccionado?.id_plan === p.id_plan
-                        ? '#fff'
-                        : Colors[colorScheme].text,
+                    color: planSeleccionado?.id_plan === p.id_plan ? colors.tintOn : colors.text,
                     fontSize: 13,
+                    fontWeight: '600',
                   }}>
                   {p.nombre} ({p.duracion_dias}d · Bs. {p.precio})
                 </ThemedText>
@@ -325,18 +328,18 @@ export default function MembresiasScreen() {
             value={fechaInicio}
             onChangeText={setFechaInicio}
             placeholder="AAAA-MM-DD"
-            placeholderTextColor={Colors[colorScheme].icon}
-            style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
           />
 
           <Pressable
             disabled={creando}
             onPress={handleCrearMembresia}
-            style={[styles.guardarBoton, { backgroundColor: Colors[colorScheme].tint }]}>
+            style={[styles.guardarBoton, { backgroundColor: colors.tint }]}>
             {creando ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.tintOn} />
             ) : (
-              <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+              <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
                 Registrar membresía
               </ThemedText>
             )}
@@ -347,7 +350,9 @@ export default function MembresiasScreen() {
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={membresias}
@@ -368,22 +373,39 @@ export default function MembresiasScreen() {
             const editandoEstado = filaEditandoEstado === item.id_membresia;
 
             return (
-              <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+              <View
+                style={[
+                  styles.row,
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
+                ]}>
+                <View style={styles.rowHeader}>
+                  {puedeGestionar ? (
+                    <ThemedText type="defaultSemiBold">
+                      {item.socio_nombres} {item.socio_apellidos} ({item.codigo_socio})
+                    </ThemedText>
+                  ) : (
+                    <ThemedText type="defaultSemiBold">{item.plan_nombre}</ThemedText>
+                  )}
+                  <Badge estado={item.estado} />
+                </View>
                 {puedeGestionar && (
-                  <ThemedText type="defaultSemiBold">
-                    {item.socio_nombres} {item.socio_apellidos} ({item.codigo_socio})
-                  </ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>Plan: {item.plan_nombre}</ThemedText>
                 )}
-                <ThemedText>Plan: {item.plan_nombre}</ThemedText>
-                <ThemedText>
+                <ThemedText style={{ color: colors.textMuted }}>
                   Vigencia: {formatFecha(item.fecha_inicio)} a {formatFecha(item.fecha_fin)}
                 </ThemedText>
-                <ThemedText>Estado: {item.estado}</ThemedText>
                 {item.proxima_a_vencer && (
-                  <ThemedText style={styles.aviso}>Próxima a vencer</ThemedText>
+                  <View style={[styles.avisoBox, { backgroundColor: colors.warningMuted }]}>
+                    <ThemedText style={{ color: colors.warning, fontSize: 12, fontWeight: '700' }}>
+                      Próxima a vencer
+                    </ThemedText>
+                  </View>
                 )}
                 {item.motivo_anulacion && (
-                  <ThemedText>Motivo de anulación: {item.motivo_anulacion}</ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>
+                    Motivo de anulación: {item.motivo_anulacion}
+                  </ThemedText>
                 )}
 
                 {puedeGestionar && !editandoEstado && (
@@ -395,20 +417,24 @@ export default function MembresiasScreen() {
                       {bloqueado ? (
                         <ActivityIndicator size="small" />
                       ) : (
-                        <ThemedText style={styles.actionText}>Renovar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.tint }]}>
+                          Renovar
+                        </ThemedText>
                       )}
                     </Pressable>
                     <Pressable
                       disabled={bloqueado}
                       onPress={() => iniciarCambioEstado(item)}
                       style={styles.actionButton}>
-                      <ThemedText style={styles.actionText}>Cambiar estado</ThemedText>
+                      <ThemedText style={[styles.actionText, { color: colors.accent }]}>
+                        Cambiar estado
+                      </ThemedText>
                     </Pressable>
                   </View>
                 )}
 
                 {editandoEstado && (
-                  <View style={styles.formulario}>
+                  <View style={[styles.formulario, { backgroundColor: colors.background, marginBottom: 0 }]}>
                     <View style={styles.filtros}>
                       {ESTADOS.map((estado) => (
                         <Pressable
@@ -417,20 +443,16 @@ export default function MembresiasScreen() {
                           style={[
                             styles.chip,
                             {
-                              borderColor: Colors[colorScheme].tint,
+                              borderColor: colors.tint,
                               backgroundColor:
-                                estadoSeleccionado === estado
-                                  ? Colors[colorScheme].tint
-                                  : 'transparent',
+                                estadoSeleccionado === estado ? colors.tint : colors.surface,
                             },
                           ]}>
                           <ThemedText
                             style={{
-                              color:
-                                estadoSeleccionado === estado
-                                  ? '#fff'
-                                  : Colors[colorScheme].text,
+                              color: estadoSeleccionado === estado ? colors.tintOn : colors.text,
                               fontSize: 12,
+                              fontWeight: '600',
                             }}>
                             {estado}
                           </ThemedText>
@@ -443,8 +465,8 @@ export default function MembresiasScreen() {
                         value={motivoAnulacion}
                         onChangeText={setMotivoAnulacion}
                         placeholder="Motivo de anulación *"
-                        placeholderTextColor={Colors[colorScheme].icon}
-                        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
                       />
                     )}
 
@@ -456,14 +478,18 @@ export default function MembresiasScreen() {
                         {bloqueado ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ThemedText style={styles.actionText}>Guardar</ThemedText>
+                          <ThemedText style={[styles.actionText, { color: colors.tint }]}>
+                            Guardar
+                          </ThemedText>
                         )}
                       </Pressable>
                       <Pressable
                         disabled={bloqueado}
                         onPress={() => setFilaEditandoEstado(null)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Cancelar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.textMuted }]}>
+                          Cancelar
+                        </ThemedText>
                       </Pressable>
                     </View>
                   </View>
@@ -473,90 +499,93 @@ export default function MembresiasScreen() {
           }}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   spacingTop: {
-    marginTop: 12,
+    marginTop: Spacing.md,
+  },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   filtros: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
     flexWrap: 'wrap',
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   nuevoBoton: {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderRadius: Radius.sm,
     paddingVertical: 10,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   formulario: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    gap: 8,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   resultadoRow: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     padding: 10,
   },
   guardarBoton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 4,
-  },
-  error: {
-    color: '#d92626',
-  },
-  aviso: {
-    color: '#b8860b',
-    fontWeight: '600',
+    marginTop: Spacing.xs,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  avisoBox: {
+    alignSelf: 'flex-start',
+    borderRadius: Radius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 2,
   },
   actions: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
     flexWrap: 'wrap',
   },
   actionButton: {
     paddingVertical: 4,
   },
   actionText: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

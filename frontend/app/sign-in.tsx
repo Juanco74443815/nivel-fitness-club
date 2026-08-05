@@ -8,18 +8,19 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  View,
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import { ApiError } from '@/lib/api';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function SignInScreen() {
   const { signIn } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
@@ -50,70 +51,100 @@ export default function SignInScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: colors.brandBackground }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ThemedView style={styles.container}>
-        <Image
-          source={require('@/assets/images/logo-nivel-fitness.jpg')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <ThemedText style={styles.subtitle}>Inicia sesión para continuar</ThemedText>
-
-        <TextInput
-          value={correo}
-          onChangeText={setCorreo}
-          placeholder="Correo electrónico"
-          placeholderTextColor={Colors[colorScheme].icon}
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Contraseña"
-          placeholderTextColor={Colors[colorScheme].icon}
-          secureTextEntry
-          autoComplete="password"
-          style={[
-            styles.input,
-            { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
-          ]}
-        />
-
-        {error ? (
-          <ThemedText style={styles.error}>{error}</ThemedText>
-        ) : null}
-
-        <Pressable
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}>
-          {isSubmitting ? (
-            <ActivityIndicator color={colorScheme === 'dark' ? '#000' : '#fff'} />
-          ) : (
-            <ThemedText
-              style={[
-                styles.buttonText,
-                { color: colorScheme === 'dark' ? '#000' : '#fff' },
-              ]}>
-              Iniciar sesión
-            </ThemedText>
-          )}
-        </Pressable>
-
-        <Link href="/recuperar-password" style={styles.link}>
-          <ThemedText style={{ color: Colors[colorScheme].tint }}>
-            ¿Olvidaste tu contraseña?
+      <View style={styles.outer}>
+        <View style={styles.brandBlock}>
+          <Image
+            source={require('@/assets/images/logo-nivel-fitness.jpg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <ThemedText style={styles.brandText} lightColor="#EAF2FF" darkColor="#EAF2FF">
+            Nivel Fitness Club
           </ThemedText>
-        </Link>
-      </ThemedView>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.surface },
+            cardShadow(colorScheme),
+          ]}>
+          <ThemedText type="subtitle" style={styles.title}>
+            Inicia sesión
+          </ThemedText>
+          <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
+            Ingresa con tu cuenta para continuar
+          </ThemedText>
+
+          <View style={styles.field}>
+            <ThemedText style={[styles.label, { color: colors.textMuted }]}>
+              Correo electrónico
+            </ThemedText>
+            <TextInput
+              value={correo}
+              onChangeText={setCorreo}
+              placeholder="nombre@correo.com"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <ThemedText style={[styles.label, { color: colors.textMuted }]}>
+              Contraseña
+            </ThemedText>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              autoComplete="password"
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+            />
+          </View>
+
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: colors.dangerMuted }]}>
+              <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+            </View>
+          ) : null}
+
+          <Pressable
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            style={({ pressed }) => [
+              styles.button,
+              { backgroundColor: colors.tint, opacity: pressed && !isSubmitting ? 0.85 : 1 },
+              isSubmitting && styles.buttonDisabled,
+            ]}>
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.tintOn} />
+            ) : (
+              <ThemedText style={[styles.buttonText, { color: colors.tintOn }]}>
+                Iniciar sesión
+              </ThemedText>
+            )}
+          </Pressable>
+
+          <Link href="/recuperar-password" style={styles.link}>
+            <ThemedText style={{ color: colors.tint, fontWeight: '600' }}>
+              ¿Olvidaste tu contraseña?
+            </ThemedText>
+          </Link>
+        </View>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -122,46 +153,76 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  container: {
+  outer: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 12,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxl,
+    gap: Spacing.xl,
+    width: '100%',
+  },
+  brandBlock: {
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   logo: {
-    width: 160,
-    height: 160,
-    alignSelf: 'center',
-    borderRadius: 80,
-    marginBottom: 8,
+    width: 96,
+    height: 96,
+  },
+  brandText: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 380,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  title: {
+    textAlign: 'center',
   },
   subtitle: {
     textAlign: 'center',
-    marginBottom: 12,
-    opacity: 0.7,
+    fontSize: 13,
+    marginBottom: Spacing.sm,
+  },
+  field: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
   },
+  errorBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.sm,
+  },
   button: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: Spacing.xs,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
-    fontWeight: '600',
-  },
-  error: {
-    color: '#d92626',
-    textAlign: 'center',
+    fontWeight: '700',
+    fontSize: 15,
   },
   link: {
-    marginTop: 8,
     alignSelf: 'center',
+    marginTop: Spacing.xs,
   },
 });

@@ -10,8 +10,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   actualizarClase,
@@ -28,7 +29,7 @@ import {
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
 import { formatFecha, formatHora } from '@/lib/format';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 type FiltroEstado = 'TODOS' | 'ACTIVO' | 'INACTIVO';
@@ -62,6 +63,7 @@ const FORMULARIO_PROGRAMACION_VACIO: FormularioProgramacion = {
 export default function ClasesScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const esAdministrador = usuario?.rol === 'Administrador';
 
   const [clases, setClases] = useState<Clase[]>([]);
@@ -386,17 +388,17 @@ export default function ClasesScreen() {
 
   if (!esAdministrador) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Clases</ThemedText>
         <ThemedText style={styles.spacing}>
           No tienes permisos para ver esta sección.
         </ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen wide>
       <ThemedText type="title" style={styles.spacing}>
         Clases
       </ThemedText>
@@ -409,15 +411,15 @@ export default function ClasesScreen() {
             style={[
               styles.chip,
               {
-                borderColor: Colors[colorScheme].tint,
-                backgroundColor:
-                  filtroEstado === opcion ? Colors[colorScheme].tint : 'transparent',
+                borderColor: filtroEstado === opcion ? colors.tint : colors.border,
+                backgroundColor: filtroEstado === opcion ? colors.tint : colors.surface,
               },
             ]}>
             <ThemedText
               style={{
-                color: filtroEstado === opcion ? '#fff' : Colors[colorScheme].text,
+                color: filtroEstado === opcion ? colors.tintOn : colors.text,
                 fontSize: 13,
+                fontWeight: '600',
               }}>
               {opcion === 'TODOS' ? 'Todas' : opcion === 'ACTIVO' ? 'Activas' : 'Inactivas'}
             </ThemedText>
@@ -427,14 +429,19 @@ export default function ClasesScreen() {
 
       <Pressable
         onPress={() => setMostrarFormularioNuevo((v) => !v)}
-        style={[styles.nuevoBoton, { borderColor: Colors[colorScheme].tint }]}>
-        <ThemedText style={{ color: Colors[colorScheme].tint, fontWeight: '600' }}>
+        style={[styles.nuevoBoton, { borderColor: colors.tint }]}>
+        <ThemedText style={{ color: colors.tint, fontWeight: '700' }}>
           {mostrarFormularioNuevo ? 'Cancelar' : '+ Nueva clase'}
         </ThemedText>
       </Pressable>
 
       {mostrarFormularioNuevo && (
-        <View style={[styles.formulario, { borderColor: Colors[colorScheme].icon }]}>
+        <View
+          style={[
+            styles.formulario,
+            { backgroundColor: colors.surface },
+            cardShadow(colorScheme),
+          ]}>
           {(
             [
               ['nombre', 'Nombre *'],
@@ -449,10 +456,10 @@ export default function ClasesScreen() {
                 setFormularioNuevo((prev) => ({ ...prev, [campo]: texto }))
               }
               placeholder={etiqueta}
-              placeholderTextColor={Colors[colorScheme].icon}
+              placeholderTextColor={colors.textMuted}
               style={[
                 styles.input,
-                { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
               ]}
             />
           ))}
@@ -460,11 +467,11 @@ export default function ClasesScreen() {
           <Pressable
             disabled={creando}
             onPress={handleCrearClase}
-            style={[styles.guardarBoton, { backgroundColor: Colors[colorScheme].tint }]}>
+            style={[styles.guardarBoton, { backgroundColor: colors.tint }]}>
             {creando ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.tintOn} />
             ) : (
-              <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+              <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
                 Guardar clase
               </ThemedText>
             )}
@@ -475,7 +482,9 @@ export default function ClasesScreen() {
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={clases}
@@ -505,7 +514,12 @@ export default function ClasesScreen() {
             const expandida = claseExpandida === item.id_clase;
 
             return (
-              <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+              <View
+                style={[
+                  styles.row,
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
+                ]}>
                 {editando ? (
                   <>
                     {(
@@ -522,12 +536,13 @@ export default function ClasesScreen() {
                           setFormularioEdicion((prev) => ({ ...prev, [campo]: texto }))
                         }
                         placeholder={etiqueta}
-                        placeholderTextColor={Colors[colorScheme].icon}
+                        placeholderTextColor={colors.textMuted}
                         style={[
                           styles.input,
                           {
-                            color: Colors[colorScheme].text,
-                            borderColor: Colors[colorScheme].icon,
+                            color: colors.text,
+                            borderColor: colors.border,
+                            backgroundColor: colors.background,
                           },
                         ]}
                       />
@@ -540,34 +555,46 @@ export default function ClasesScreen() {
                         {bloqueado ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ThemedText style={styles.actionText}>Guardar</ThemedText>
+                          <ThemedText style={[styles.actionText, { color: colors.tint }]}>
+                            Guardar
+                          </ThemedText>
                         )}
                       </Pressable>
                       <Pressable
                         disabled={bloqueado}
                         onPress={() => setFilaEditando(null)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Cancelar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.textMuted }]}>
+                          Cancelar
+                        </ThemedText>
                       </Pressable>
                     </View>
                   </>
                 ) : (
                   <>
-                    <ThemedText type="defaultSemiBold">{item.nombre}</ThemedText>
+                    <View style={styles.rowHeader}>
+                      <ThemedText type="defaultSemiBold">{item.nombre}</ThemedText>
+                      <Badge estado={item.estado} />
+                    </View>
                     {item.instructor ? (
-                      <ThemedText>Instructor: {item.instructor}</ThemedText>
+                      <ThemedText style={{ color: colors.textMuted }}>
+                        Instructor: {item.instructor}
+                      </ThemedText>
                     ) : null}
                     {item.descripcion ? (
-                      <ThemedText>{item.descripcion}</ThemedText>
+                      <ThemedText style={{ color: colors.textMuted }}>
+                        {item.descripcion}
+                      </ThemedText>
                     ) : null}
-                    <ThemedText>Estado: {item.estado}</ThemedText>
 
                     <View style={styles.actions}>
                       <Pressable
                         disabled={bloqueado}
                         onPress={() => iniciarEdicion(item)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Editar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.tint }]}>
+                          Editar
+                        </ThemedText>
                       </Pressable>
 
                       {item.estado === 'ACTIVO' && (
@@ -578,7 +605,7 @@ export default function ClasesScreen() {
                           {bloqueado ? (
                             <ActivityIndicator size="small" />
                           ) : (
-                            <ThemedText style={[styles.actionText, styles.error]}>
+                            <ThemedText style={[styles.actionText, { color: colors.danger }]}>
                               Desactivar
                             </ThemedText>
                           )}
@@ -588,7 +615,7 @@ export default function ClasesScreen() {
                       <Pressable
                         onPress={() => handleToggleExpandir(item)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>
+                        <ThemedText style={[styles.actionText, { color: colors.accent }]}>
                           {expandida ? 'Ocultar sesiones' : 'Ver sesiones'}
                         </ThemedText>
                       </Pressable>
@@ -597,26 +624,26 @@ export default function ClasesScreen() {
                 )}
 
                 {expandida && (
-                  <View
-                    style={[
-                      styles.subseccion,
-                      { borderColor: Colors[colorScheme].icon },
-                    ]}>
+                  <View style={[styles.subseccion, { borderColor: colors.border }]}>
                     <ThemedText type="defaultSemiBold" style={styles.spacingSmall}>
                       Sesiones programadas
                     </ThemedText>
 
-                    <View style={styles.formulario}>
+                    <View
+                      style={[
+                        styles.formulario,
+                        { backgroundColor: colors.background, marginBottom: 0 },
+                      ]}>
                       <TextInput
                         value={formularioSesion.fecha}
                         onChangeText={(texto) =>
                           setFormularioSesion((prev) => ({ ...prev, fecha: texto }))
                         }
                         placeholder="Fecha (AAAA-MM-DD)"
-                        placeholderTextColor={Colors[colorScheme].icon}
+                        placeholderTextColor={colors.textMuted}
                         style={[
                           styles.input,
-                          { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+                          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
                         ]}
                       />
                       <TextInput
@@ -625,10 +652,10 @@ export default function ClasesScreen() {
                           setFormularioSesion((prev) => ({ ...prev, hora_inicio: texto }))
                         }
                         placeholder="Hora de inicio (HH:MM)"
-                        placeholderTextColor={Colors[colorScheme].icon}
+                        placeholderTextColor={colors.textMuted}
                         style={[
                           styles.input,
-                          { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+                          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
                         ]}
                       />
                       <TextInput
@@ -637,10 +664,10 @@ export default function ClasesScreen() {
                           setFormularioSesion((prev) => ({ ...prev, hora_fin: texto }))
                         }
                         placeholder="Hora de fin (HH:MM)"
-                        placeholderTextColor={Colors[colorScheme].icon}
+                        placeholderTextColor={colors.textMuted}
                         style={[
                           styles.input,
-                          { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+                          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
                         ]}
                       />
                       <TextInput
@@ -650,24 +677,21 @@ export default function ClasesScreen() {
                         }
                         placeholder="Cupo máximo"
                         keyboardType="numeric"
-                        placeholderTextColor={Colors[colorScheme].icon}
+                        placeholderTextColor={colors.textMuted}
                         style={[
                           styles.input,
-                          { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+                          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
                         ]}
                       />
 
                       <Pressable
                         disabled={creandoSesion}
                         onPress={() => handleCrearSesion(item.id_clase)}
-                        style={[
-                          styles.guardarBoton,
-                          { backgroundColor: Colors[colorScheme].tint },
-                        ]}>
+                        style={[styles.guardarBoton, { backgroundColor: colors.tint }]}>
                         {creandoSesion ? (
-                          <ActivityIndicator color="#fff" />
+                          <ActivityIndicator color={colors.tintOn} />
                         ) : (
-                          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+                          <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
                             Programar sesión
                           </ThemedText>
                         )}
@@ -677,7 +701,9 @@ export default function ClasesScreen() {
                     {cargandoProgramaciones ? (
                       <ActivityIndicator />
                     ) : programaciones.length === 0 ? (
-                      <ThemedText>No hay sesiones programadas para esta clase.</ThemedText>
+                      <ThemedText style={{ color: colors.textMuted }}>
+                        No hay sesiones programadas para esta clase.
+                      </ThemedText>
                     ) : (
                       programaciones.map((sesion) => {
                         const sesionBloqueada =
@@ -688,10 +714,7 @@ export default function ClasesScreen() {
                         return (
                           <View
                             key={sesion.id_programacion}
-                            style={[
-                              styles.sesionRow,
-                              { borderColor: Colors[colorScheme].icon },
-                            ]}>
+                            style={[styles.sesionRow, { backgroundColor: colors.background }]}>
                             {editandoSesion ? (
                               <>
                                 <TextInput
@@ -703,12 +726,13 @@ export default function ClasesScreen() {
                                     }))
                                   }
                                   placeholder="Fecha (AAAA-MM-DD)"
-                                  placeholderTextColor={Colors[colorScheme].icon}
+                                  placeholderTextColor={colors.textMuted}
                                   style={[
                                     styles.input,
                                     {
-                                      color: Colors[colorScheme].text,
-                                      borderColor: Colors[colorScheme].icon,
+                                      color: colors.text,
+                                      borderColor: colors.border,
+                                      backgroundColor: colors.surface,
                                     },
                                   ]}
                                 />
@@ -721,12 +745,13 @@ export default function ClasesScreen() {
                                     }))
                                   }
                                   placeholder="Hora de inicio (HH:MM)"
-                                  placeholderTextColor={Colors[colorScheme].icon}
+                                  placeholderTextColor={colors.textMuted}
                                   style={[
                                     styles.input,
                                     {
-                                      color: Colors[colorScheme].text,
-                                      borderColor: Colors[colorScheme].icon,
+                                      color: colors.text,
+                                      borderColor: colors.border,
+                                      backgroundColor: colors.surface,
                                     },
                                   ]}
                                 />
@@ -739,12 +764,13 @@ export default function ClasesScreen() {
                                     }))
                                   }
                                   placeholder="Hora de fin (HH:MM)"
-                                  placeholderTextColor={Colors[colorScheme].icon}
+                                  placeholderTextColor={colors.textMuted}
                                   style={[
                                     styles.input,
                                     {
-                                      color: Colors[colorScheme].text,
-                                      borderColor: Colors[colorScheme].icon,
+                                      color: colors.text,
+                                      borderColor: colors.border,
+                                      backgroundColor: colors.surface,
                                     },
                                   ]}
                                 />
@@ -758,12 +784,13 @@ export default function ClasesScreen() {
                                   }
                                   placeholder="Cupo máximo"
                                   keyboardType="numeric"
-                                  placeholderTextColor={Colors[colorScheme].icon}
+                                  placeholderTextColor={colors.textMuted}
                                   style={[
                                     styles.input,
                                     {
-                                      color: Colors[colorScheme].text,
-                                      borderColor: Colors[colorScheme].icon,
+                                      color: colors.text,
+                                      borderColor: colors.border,
+                                      backgroundColor: colors.surface,
                                     },
                                   ]}
                                 />
@@ -780,7 +807,8 @@ export default function ClasesScreen() {
                                     {sesionBloqueada ? (
                                       <ActivityIndicator size="small" />
                                     ) : (
-                                      <ThemedText style={styles.actionText}>
+                                      <ThemedText
+                                        style={[styles.actionText, { color: colors.tint }]}>
                                         Guardar
                                       </ThemedText>
                                     )}
@@ -789,7 +817,8 @@ export default function ClasesScreen() {
                                     disabled={sesionBloqueada}
                                     onPress={() => setSesionEditando(null)}
                                     style={styles.actionButton}>
-                                    <ThemedText style={styles.actionText}>
+                                    <ThemedText
+                                      style={[styles.actionText, { color: colors.textMuted }]}>
                                       Cancelar
                                     </ThemedText>
                                   </Pressable>
@@ -797,15 +826,17 @@ export default function ClasesScreen() {
                               </>
                             ) : (
                               <>
-                                <ThemedText>
-                                  {formatFecha(sesion.fecha)} ·{' '}
-                                  {formatHora(sesion.hora_inicio)} -{' '}
-                                  {formatHora(sesion.hora_fin)}
-                                </ThemedText>
-                                <ThemedText>
+                                <View style={styles.rowHeader}>
+                                  <ThemedText style={{ fontWeight: '600' }}>
+                                    {formatFecha(sesion.fecha)} ·{' '}
+                                    {formatHora(sesion.hora_inicio)} -{' '}
+                                    {formatHora(sesion.hora_fin)}
+                                  </ThemedText>
+                                  <Badge estado={sesion.estado} />
+                                </View>
+                                <ThemedText style={{ color: colors.textMuted }}>
                                   Cupos: {sesion.cupos_disponibles}/{sesion.cupo_maximo}
                                 </ThemedText>
-                                <ThemedText>Estado: {sesion.estado}</ThemedText>
 
                                 {sesion.estado === 'PROGRAMADA' && (
                                   <View style={styles.actions}>
@@ -813,7 +844,8 @@ export default function ClasesScreen() {
                                       disabled={sesionBloqueada}
                                       onPress={() => iniciarEdicionSesion(sesion)}
                                       style={styles.actionButton}>
-                                      <ThemedText style={styles.actionText}>
+                                      <ThemedText
+                                        style={[styles.actionText, { color: colors.tint }]}>
                                         Editar
                                       </ThemedText>
                                     </Pressable>
@@ -827,7 +859,7 @@ export default function ClasesScreen() {
                                         <ActivityIndicator size="small" />
                                       ) : (
                                         <ThemedText
-                                          style={[styles.actionText, styles.error]}>
+                                          style={[styles.actionText, { color: colors.danger }]}>
                                           Cancelar sesión
                                         </ThemedText>
                                       )}
@@ -847,93 +879,92 @@ export default function ClasesScreen() {
           }}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   spacingSmall: {
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
+  },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   filtros: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   nuevoBoton: {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderRadius: Radius.sm,
     paddingVertical: 10,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   formulario: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    gap: 8,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   guardarBoton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 4,
-  },
-  error: {
-    color: '#d92626',
+    marginTop: Spacing.xs,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   actions: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
     flexWrap: 'wrap',
   },
   actionButton: {
     paddingVertical: 4,
   },
   actionText: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   subseccion: {
     borderTopWidth: 1,
-    marginTop: 12,
-    paddingTop: 12,
-    gap: 8,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    gap: Spacing.sm,
   },
   sesionRow: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
+    borderRadius: Radius.sm,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
     gap: 2,
   },
 });

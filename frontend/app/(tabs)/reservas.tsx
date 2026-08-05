@@ -9,8 +9,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   ApiError,
@@ -23,7 +24,7 @@ import {
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
 import { formatFecha, formatHora } from '@/lib/format';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 type Pestana = 'DISPONIBLES' | 'MIS_RESERVAS';
@@ -31,6 +32,7 @@ type Pestana = 'DISPONIBLES' | 'MIS_RESERVAS';
 export default function ReservasScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const puedeConsultar =
     usuario?.rol === 'Administrador' ||
     usuario?.rol === 'Recepcionista' ||
@@ -170,17 +172,17 @@ export default function ReservasScreen() {
 
   if (!puedeConsultar) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Reservas</ThemedText>
         <ThemedText style={styles.spacing}>
           No tienes permisos para ver esta sección.
         </ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen>
       <ThemedText type="title" style={styles.spacing}>
         Reservas
       </ThemedText>
@@ -194,15 +196,15 @@ export default function ReservasScreen() {
               style={[
                 styles.chip,
                 {
-                  borderColor: Colors[colorScheme].tint,
-                  backgroundColor:
-                    pestana === opcion ? Colors[colorScheme].tint : 'transparent',
+                  borderColor: pestana === opcion ? colors.tint : colors.border,
+                  backgroundColor: pestana === opcion ? colors.tint : colors.surface,
                 },
               ]}>
               <ThemedText
                 style={{
-                  color: pestana === opcion ? '#fff' : Colors[colorScheme].text,
+                  color: pestana === opcion ? colors.tintOn : colors.text,
                   fontSize: 13,
+                  fontWeight: '600',
                 }}>
                 {opcion === 'DISPONIBLES' ? 'Disponibles' : 'Mis reservas'}
               </ThemedText>
@@ -215,7 +217,9 @@ export default function ReservasScreen() {
         isLoading ? (
           <ActivityIndicator style={styles.spacing} />
         ) : error ? (
-          <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+          <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+            <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+          </View>
         ) : (
           <FlatList
             data={sesiones}
@@ -234,13 +238,18 @@ export default function ReservasScreen() {
               const sinCupo = item.cupos_disponibles <= 0;
 
               return (
-                <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+                <View
+                  style={[
+                    styles.row,
+                    { backgroundColor: colors.surface },
+                    cardShadow(colorScheme),
+                  ]}>
                   <ThemedText type="defaultSemiBold">{item.clase_nombre}</ThemedText>
-                  <ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>
                     {formatFecha(item.fecha)} · {formatHora(item.hora_inicio)} -{' '}
                     {formatHora(item.hora_fin)}
                   </ThemedText>
-                  <ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>
                     Cupos disponibles: {item.cupos_disponibles}/{item.cupo_maximo}
                   </ThemedText>
 
@@ -251,16 +260,16 @@ export default function ReservasScreen() {
                         onPress={() => handleReservar(item)}
                         style={[
                           styles.reservarBoton,
-                          {
-                            backgroundColor: sinCupo
-                              ? Colors[colorScheme].icon
-                              : Colors[colorScheme].tint,
-                          },
+                          { backgroundColor: sinCupo ? colors.border : colors.tint },
                         ]}>
                         {bloqueado ? (
-                          <ActivityIndicator size="small" color="#fff" />
+                          <ActivityIndicator size="small" color={colors.tintOn} />
                         ) : (
-                          <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+                          <ThemedText
+                            style={{
+                              color: sinCupo ? colors.textMuted : colors.tintOn,
+                              fontWeight: '700',
+                            }}>
                             {sinCupo ? 'Sin cupo' : 'Reservar'}
                           </ThemedText>
                         )}
@@ -275,9 +284,9 @@ export default function ReservasScreen() {
       ) : cargandoMisReservas ? (
         <ActivityIndicator style={styles.spacing} />
       ) : errorMisReservas ? (
-        <ThemedText style={[styles.spacing, styles.error]}>
-          {errorMisReservas}
-        </ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{errorMisReservas}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={misReservas}
@@ -292,13 +301,20 @@ export default function ReservasScreen() {
             const bloqueado = cancelando === item.id_reserva;
 
             return (
-              <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
-                <ThemedText type="defaultSemiBold">{item.clase_nombre}</ThemedText>
-                <ThemedText>
+              <View
+                style={[
+                  styles.row,
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
+                ]}>
+                <View style={styles.rowHeader}>
+                  <ThemedText type="defaultSemiBold">{item.clase_nombre}</ThemedText>
+                  <Badge estado={item.estado} />
+                </View>
+                <ThemedText style={{ color: colors.textMuted }}>
                   {formatFecha(item.fecha)} · {formatHora(item.hora_inicio)} -{' '}
                   {formatHora(item.hora_fin)}
                 </ThemedText>
-                <ThemedText>Estado: {item.estado}</ThemedText>
 
                 {item.estado === 'ACTIVA' && (
                   <View style={styles.actions}>
@@ -309,7 +325,7 @@ export default function ReservasScreen() {
                       {bloqueado ? (
                         <ActivityIndicator size="small" />
                       ) : (
-                        <ThemedText style={[styles.actionText, styles.error]}>
+                        <ThemedText style={[styles.actionText, { color: colors.danger }]}>
                           Cancelar reserva
                         </ThemedText>
                       )}
@@ -321,52 +337,53 @@ export default function ReservasScreen() {
           }}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
+  },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   filtros: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  error: {
-    color: '#d92626',
-  },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   actions: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
   actionButton: {
     paddingVertical: 4,
   },
   actionText: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   reservarBoton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 16,
     paddingVertical: 8,
     alignItems: 'center',

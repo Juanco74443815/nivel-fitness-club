@@ -10,8 +10,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   ApiError,
@@ -23,12 +24,13 @@ import {
   type UsuarioListado,
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function UsuariosScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const esAdministrador = usuario?.rol === 'Administrador';
 
   const [usuarios, setUsuarios] = useState<UsuarioListado[]>([]);
@@ -146,17 +148,17 @@ export default function UsuariosScreen() {
 
   if (!esAdministrador) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Usuarios</ThemedText>
         <ThemedText style={styles.spacing}>
           No tienes permisos para ver esta sección.
         </ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen>
       <ThemedText type="title" style={styles.spacing}>
         Usuarios
       </ThemedText>
@@ -165,17 +167,19 @@ export default function UsuariosScreen() {
         value={busqueda}
         onChangeText={setBusqueda}
         placeholder="Buscar por nombre o correo"
-        placeholderTextColor={Colors[colorScheme].icon}
+        placeholderTextColor={colors.textMuted}
         style={[
           styles.search,
-          { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon },
+          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
         ]}
       />
 
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={usuariosFiltrados}
@@ -197,18 +201,20 @@ export default function UsuariosScreen() {
               <View
                 style={[
                   styles.row,
-                  { borderColor: Colors[colorScheme].icon },
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
                 ]}>
-                <ThemedText type="defaultSemiBold">
-                  {item.nombres} {item.apellidos}
-                </ThemedText>
-                <ThemedText>{item.correo}</ThemedText>
-                <ThemedText>
-                  Rol: {item.rol} · Estado: {item.estado}
-                </ThemedText>
+                <View style={styles.rowHeader}>
+                  <ThemedText type="defaultSemiBold">
+                    {item.nombres} {item.apellidos}
+                  </ThemedText>
+                  <Badge estado={item.estado} />
+                </View>
+                <ThemedText style={{ color: colors.textMuted }}>{item.correo}</ThemedText>
+                <ThemedText style={{ color: colors.textMuted }}>Rol: {item.rol}</ThemedText>
 
                 {esUnoMismo ? (
-                  <ThemedText style={styles.hint}>
+                  <ThemedText style={[styles.hint, { color: colors.textMuted }]}>
                     Esta es tu propia cuenta: no puedes cambiar tu rol ni
                     desactivarla.
                   </ThemedText>
@@ -220,7 +226,7 @@ export default function UsuariosScreen() {
                         setFilaExpandida(expandido ? null : item.id_usuario)
                       }
                       style={styles.actionButton}>
-                      <ThemedText style={styles.actionText}>
+                      <ThemedText style={[styles.actionText, { color: colors.tint }]}>
                         Cambiar rol
                       </ThemedText>
                     </Pressable>
@@ -233,7 +239,7 @@ export default function UsuariosScreen() {
                         {bloqueado ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ThemedText style={[styles.actionText, styles.error]}>
+                          <ThemedText style={[styles.actionText, { color: colors.danger }]}>
                             Desactivar
                           </ThemedText>
                         )}
@@ -252,11 +258,11 @@ export default function UsuariosScreen() {
                         style={[
                           styles.chip,
                           {
-                            borderColor: Colors[colorScheme].tint,
+                            borderColor: colors.tint,
                             opacity: rol.id_rol === item.id_rol ? 0.4 : 1,
                           },
                         ]}>
-                        <ThemedText style={styles.chipText}>
+                        <ThemedText style={[styles.chipText, { color: colors.tint }]}>
                           {rol.nombre}
                         </ThemedText>
                       </Pressable>
@@ -268,66 +274,67 @@ export default function UsuariosScreen() {
           }}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
+  },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   search: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 16,
-    marginBottom: 16,
-  },
-  error: {
-    color: '#d92626',
+    marginBottom: Spacing.lg,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
   },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
   hint: {
-    opacity: 0.6,
     fontSize: 12,
     marginTop: 6,
   },
   actions: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
   },
   actionButton: {
     paddingVertical: 4,
   },
   actionText: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   roleChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 10,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   chipText: {
     fontSize: 13,
+    fontWeight: '600',
   },
 });

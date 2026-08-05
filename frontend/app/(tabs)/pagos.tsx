@@ -12,8 +12,9 @@ import {
   View,
 } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import {
   API_URL,
@@ -31,7 +32,7 @@ import {
 } from '@/lib/api';
 import { confirmAsync, notify } from '@/lib/confirm';
 import { formatFecha } from '@/lib/format';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const METODOS_PAGO = ['EFECTIVO', 'TRANSFERENCIA', 'QR'] as const;
@@ -40,6 +41,7 @@ const ESTADOS_FILTRO = ['TODOS', 'PENDIENTE', 'VERIFICADO', 'RECHAZADO', 'ANULAD
 export default function PagosScreen() {
   const { token, usuario } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const puedeGestionar =
     usuario?.rol === 'Administrador' || usuario?.rol === 'Recepcionista';
   const esAdministrador = usuario?.rol === 'Administrador';
@@ -250,14 +252,14 @@ export default function PagosScreen() {
 
   if (!token || !usuario) {
     return (
-      <ThemedView style={styles.container}>
+      <Screen>
         <ThemedText type="title">Pagos</ThemedText>
-      </ThemedView>
+      </Screen>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <Screen wide>
       <ThemedText type="title" style={styles.spacing}>
         Pagos
       </ThemedText>
@@ -269,22 +271,27 @@ export default function PagosScreen() {
               setMostrarFormularioNuevo((v) => !v);
               if (mostrarFormularioNuevo) limpiarFormularioNuevo();
             }}
-            style={[styles.nuevoBoton, { borderColor: Colors[colorScheme].tint }]}>
-            <ThemedText style={{ color: Colors[colorScheme].tint, fontWeight: '600' }}>
+            style={[styles.nuevoBoton, { borderColor: colors.tint }]}>
+            <ThemedText style={{ color: colors.tint, fontWeight: '700' }}>
               {mostrarFormularioNuevo ? 'Cancelar' : '+ Registrar pago'}
             </ThemedText>
           </Pressable>
 
           {mostrarFormularioNuevo && (
-            <View style={[styles.formulario, { borderColor: Colors[colorScheme].icon }]}>
+            <View
+              style={[
+                styles.formulario,
+                { backgroundColor: colors.surface },
+                cardShadow(colorScheme),
+              ]}>
               <ThemedText type="defaultSemiBold">1. Buscar socio</ThemedText>
               <TextInput
                 value={busquedaSocio}
                 onChangeText={setBusquedaSocio}
                 onSubmitEditing={handleBuscarSocio}
                 placeholder="Nombre, CI o código del socio"
-                placeholderTextColor={Colors[colorScheme].icon}
-                style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+                placeholderTextColor={colors.textMuted}
+                style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
               />
               {socioSeleccionado ? (
                 <ThemedText>
@@ -296,7 +303,7 @@ export default function PagosScreen() {
                   <Pressable
                     key={s.id_socio}
                     onPress={() => seleccionarSocio(s)}
-                    style={[styles.resultadoRow, { borderColor: Colors[colorScheme].icon }]}>
+                    style={[styles.resultadoRow, { borderColor: colors.border }]}>
                     <ThemedText>
                       {s.nombres} {s.apellidos} ({s.codigo_socio})
                     </ThemedText>
@@ -321,20 +328,21 @@ export default function PagosScreen() {
                         style={[
                           styles.chip,
                           {
-                            borderColor: Colors[colorScheme].tint,
+                            borderColor: colors.tint,
                             backgroundColor:
                               membresiaSeleccionada?.id_membresia === m.id_membresia
-                                ? Colors[colorScheme].tint
-                                : 'transparent',
+                                ? colors.tint
+                                : colors.background,
                           },
                         ]}>
                         <ThemedText
                           style={{
                             color:
                               membresiaSeleccionada?.id_membresia === m.id_membresia
-                                ? '#fff'
-                                : Colors[colorScheme].text,
+                                ? colors.tintOn
+                                : colors.text,
                             fontSize: 13,
+                            fontWeight: '600',
                           }}>
                           {m.plan_nombre}
                         </ThemedText>
@@ -352,8 +360,8 @@ export default function PagosScreen() {
                 onChangeText={setMonto}
                 placeholder="0.00"
                 keyboardType="decimal-pad"
-                placeholderTextColor={Colors[colorScheme].icon}
-                style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+                placeholderTextColor={colors.textMuted}
+                style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
               />
 
               <ThemedText type="defaultSemiBold" style={styles.spacingTop}>
@@ -367,14 +375,15 @@ export default function PagosScreen() {
                     style={[
                       styles.chip,
                       {
-                        borderColor: Colors[colorScheme].tint,
-                        backgroundColor: metodoPago === m ? Colors[colorScheme].tint : 'transparent',
+                        borderColor: colors.tint,
+                        backgroundColor: metodoPago === m ? colors.tint : colors.background,
                       },
                     ]}>
                     <ThemedText
                       style={{
-                        color: metodoPago === m ? '#fff' : Colors[colorScheme].text,
+                        color: metodoPago === m ? colors.tintOn : colors.text,
                         fontSize: 13,
+                        fontWeight: '600',
                       }}>
                       {m}
                     </ThemedText>
@@ -385,11 +394,13 @@ export default function PagosScreen() {
               <Pressable
                 disabled={creando}
                 onPress={handleRegistrarPago}
-                style={[styles.guardarBoton, { backgroundColor: Colors[colorScheme].tint }]}>
+                style={[styles.guardarBoton, { backgroundColor: colors.tint }]}>
                 {creando ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={colors.tintOn} />
                 ) : (
-                  <ThemedText style={{ color: '#fff', fontWeight: '600' }}>Registrar pago</ThemedText>
+                  <ThemedText style={{ color: colors.tintOn, fontWeight: '700' }}>
+                    Registrar pago
+                  </ThemedText>
                 )}
               </Pressable>
             </View>
@@ -403,14 +414,15 @@ export default function PagosScreen() {
                 style={[
                   styles.chip,
                   {
-                    borderColor: Colors[colorScheme].tint,
-                    backgroundColor: filtroEstado === estado ? Colors[colorScheme].tint : 'transparent',
+                    borderColor: filtroEstado === estado ? colors.tint : colors.border,
+                    backgroundColor: filtroEstado === estado ? colors.tint : colors.surface,
                   },
                 ]}>
                 <ThemedText
                   style={{
-                    color: filtroEstado === estado ? '#fff' : Colors[colorScheme].text,
+                    color: filtroEstado === estado ? colors.tintOn : colors.text,
                     fontSize: 12,
+                    fontWeight: '600',
                   }}>
                   {estado}
                 </ThemedText>
@@ -423,7 +435,9 @@ export default function PagosScreen() {
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : (
         <FlatList
           data={pagos}
@@ -438,23 +452,42 @@ export default function PagosScreen() {
             const editandoEstado = filaEditandoEstado === item.id_pago;
 
             return (
-              <View style={[styles.row, { borderColor: Colors[colorScheme].icon }]}>
+              <View
+                style={[
+                  styles.row,
+                  { backgroundColor: colors.surface },
+                  cardShadow(colorScheme),
+                ]}>
+                <View style={styles.rowHeader}>
+                  {puedeGestionar ? (
+                    <ThemedText type="defaultSemiBold">
+                      {item.socio_nombres} {item.socio_apellidos} ({item.codigo_socio})
+                    </ThemedText>
+                  ) : (
+                    <ThemedText type="defaultSemiBold">{item.metodo_pago}</ThemedText>
+                  )}
+                  <Badge estado={item.estado} />
+                </View>
+                <ThemedText style={[styles.monto, { color: colors.tint }]}>
+                  Bs. {item.monto}
+                </ThemedText>
                 {puedeGestionar && (
-                  <ThemedText type="defaultSemiBold">
-                    {item.socio_nombres} {item.socio_apellidos} ({item.codigo_socio})
-                  </ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>Método: {item.metodo_pago}</ThemedText>
                 )}
-                <ThemedText>Monto: Bs. {item.monto}</ThemedText>
-                <ThemedText>Método: {item.metodo_pago}</ThemedText>
-                {item.plan_nombre && <ThemedText>Membresía: {item.plan_nombre}</ThemedText>}
-                <ThemedText>Fecha: {formatFecha(item.fecha_pago)}</ThemedText>
-                <ThemedText>Estado: {item.estado}</ThemedText>
+                {item.plan_nombre && (
+                  <ThemedText style={{ color: colors.textMuted }}>Membresía: {item.plan_nombre}</ThemedText>
+                )}
+                <ThemedText style={{ color: colors.textMuted }}>
+                  Fecha: {formatFecha(item.fecha_pago)}
+                </ThemedText>
                 {item.observaciones && (
-                  <ThemedText>Motivo: {item.observaciones}</ThemedText>
+                  <ThemedText style={{ color: colors.textMuted }}>
+                    Motivo: {item.observaciones}
+                  </ThemedText>
                 )}
                 {item.comprobante_url && (
                   <Pressable onPress={() => Linking.openURL(`${API_URL}${item.comprobante_url}`)}>
-                    <ThemedText style={{ color: Colors[colorScheme].tint }}>
+                    <ThemedText style={{ color: colors.accent, fontWeight: '600' }}>
                       Ver comprobante
                     </ThemedText>
                   </Pressable>
@@ -468,7 +501,7 @@ export default function PagosScreen() {
                     {bloqueado ? (
                       <ActivityIndicator size="small" />
                     ) : (
-                      <ThemedText style={styles.actionText}>
+                      <ThemedText style={[styles.actionText, { color: colors.tint }]}>
                         {item.comprobante_url ? 'Reemplazar comprobante' : 'Cargar comprobante'}
                       </ThemedText>
                     )}
@@ -485,7 +518,9 @@ export default function PagosScreen() {
                         {bloqueado ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ThemedText style={styles.actionText}>Verificar</ThemedText>
+                          <ThemedText style={[styles.actionText, { color: colors.success }]}>
+                            Verificar
+                          </ThemedText>
                         )}
                       </Pressable>
                     )}
@@ -494,7 +529,9 @@ export default function PagosScreen() {
                         disabled={bloqueado}
                         onPress={() => iniciarCambioEstado(item)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Rechazar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.danger }]}>
+                          Rechazar
+                        </ThemedText>
                       </Pressable>
                     )}
                     {item.estado === 'VERIFICADO' && esAdministrador && (
@@ -502,20 +539,22 @@ export default function PagosScreen() {
                         disabled={bloqueado}
                         onPress={() => iniciarCambioEstado(item)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Anular</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.danger }]}>
+                          Anular
+                        </ThemedText>
                       </Pressable>
                     )}
                   </View>
                 )}
 
                 {editandoEstado && (
-                  <View style={styles.formulario}>
+                  <View style={[styles.formulario, { backgroundColor: colors.background, marginBottom: 0 }]}>
                     <TextInput
                       value={motivo}
                       onChangeText={setMotivo}
                       placeholder="Motivo *"
-                      placeholderTextColor={Colors[colorScheme].icon}
-                      style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
+                      placeholderTextColor={colors.textMuted}
+                      style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
                     />
                     <View style={styles.actions}>
                       <Pressable
@@ -530,14 +569,18 @@ export default function PagosScreen() {
                         {bloqueado ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ThemedText style={styles.actionText}>Confirmar</ThemedText>
+                          <ThemedText style={[styles.actionText, { color: colors.tint }]}>
+                            Confirmar
+                          </ThemedText>
                         )}
                       </Pressable>
                       <Pressable
                         disabled={bloqueado}
                         onPress={() => setFilaEditandoEstado(null)}
                         style={styles.actionButton}>
-                        <ThemedText style={styles.actionText}>Cancelar</ThemedText>
+                        <ThemedText style={[styles.actionText, { color: colors.textMuted }]}>
+                          Cancelar
+                        </ThemedText>
                       </Pressable>
                     </View>
                   </View>
@@ -547,86 +590,91 @@ export default function PagosScreen() {
           }}
         />
       )}
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
   spacingTop: {
-    marginTop: 12,
+    marginTop: Spacing.md,
+  },
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
   },
   filtros: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
     flexWrap: 'wrap',
   },
   chip: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   nuevoBoton: {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderRadius: Radius.sm,
     paddingVertical: 10,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   formulario: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    gap: 8,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
+    paddingVertical: 10,
+    fontSize: 15,
   },
   resultadoRow: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     padding: 10,
   },
   guardarBoton: {
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 4,
-  },
-  error: {
-    color: '#d92626',
+    marginTop: Spacing.xs,
   },
   row: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: 4,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  monto: {
+    fontWeight: '700',
+    fontSize: 17,
   },
   actions: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
     flexWrap: 'wrap',
   },
   actionButton: {
     paddingVertical: 4,
+    marginTop: Spacing.xs,
   },
   actionText: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

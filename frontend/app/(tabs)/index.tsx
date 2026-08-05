@@ -1,14 +1,19 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { Badge } from '@/components/ui/badge';
+import { Screen } from '@/components/ui/screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useSession } from '@/context/auth-context';
 import { ApiError, getPerfil, type Perfil } from '@/lib/api';
+import { Colors, Radius, Spacing, cardShadow } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function PerfilScreen() {
   const { token, signOut } = useSession();
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,56 +45,136 @@ export default function PerfilScreen() {
     }, [cargarPerfil]),
   );
 
+  const iniciales = perfil
+    ? `${perfil.nombres.charAt(0)}${perfil.apellidos.charAt(0)}`.toUpperCase()
+    : '';
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">Mi perfil</ThemedText>
+    <Screen>
+      <ThemedText type="title" style={styles.spacing}>
+        Mi perfil
+      </ThemedText>
 
       {isLoading ? (
         <ActivityIndicator style={styles.spacing} />
       ) : error ? (
-        <ThemedText style={[styles.spacing, styles.error]}>{error}</ThemedText>
+        <View style={[styles.messageBox, { backgroundColor: colors.dangerMuted }]}>
+          <ThemedText style={{ color: colors.danger }}>{error}</ThemedText>
+        </View>
       ) : perfil ? (
-        <ThemedView style={styles.spacing}>
-          <ThemedText type="subtitle">
-            {perfil.nombres} {perfil.apellidos}
-          </ThemedText>
-          <ThemedText>Correo: {perfil.correo}</ThemedText>
-          <ThemedText>Rol: {perfil.rol}</ThemedText>
-          <ThemedText>Estado: {perfil.estado}</ThemedText>
-          {perfil.telefono ? <ThemedText>Teléfono: {perfil.telefono}</ThemedText> : null}
-        </ThemedView>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.surface },
+            cardShadow(colorScheme),
+          ]}>
+          <View style={styles.headerRow}>
+            <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
+              <ThemedText style={[styles.avatarText, { color: colors.tintOn }]}>
+                {iniciales}
+              </ThemedText>
+            </View>
+            <View style={styles.headerText}>
+              <ThemedText type="subtitle">
+                {perfil.nombres} {perfil.apellidos}
+              </ThemedText>
+              <ThemedText style={{ color: colors.textMuted }}>{perfil.rol}</ThemedText>
+            </View>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <View style={styles.datos}>
+            <View style={styles.dato}>
+              <ThemedText style={[styles.datoLabel, { color: colors.textMuted }]}>
+                Correo
+              </ThemedText>
+              <ThemedText>{perfil.correo}</ThemedText>
+            </View>
+            {perfil.telefono ? (
+              <View style={styles.dato}>
+                <ThemedText style={[styles.datoLabel, { color: colors.textMuted }]}>
+                  Teléfono
+                </ThemedText>
+                <ThemedText>{perfil.telefono}</ThemedText>
+              </View>
+            ) : null}
+            <View style={styles.dato}>
+              <ThemedText style={[styles.datoLabel, { color: colors.textMuted }]}>
+                Estado
+              </ThemedText>
+              <Badge estado={perfil.estado} />
+            </View>
+          </View>
+        </View>
       ) : null}
 
-      <Pressable style={styles.logoutButton} onPress={signOut}>
-        <ThemedText style={styles.logoutText}>Cerrar sesión</ThemedText>
+      <Pressable
+        style={[styles.logoutButton, { borderColor: colors.danger }]}
+        onPress={signOut}>
+        <ThemedText style={[styles.logoutText, { color: colors.danger }]}>
+          Cerrar sesión
+        </ThemedText>
       </Pressable>
-    </ThemedView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
   spacing: {
-    marginTop: 20,
-    gap: 6,
+    marginBottom: Spacing.lg,
   },
-  error: {
-    color: '#d92626',
+  messageBox: {
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
+  },
+  card: {
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerText: {
+    gap: 2,
+  },
+  divider: {
+    height: 1,
+    marginVertical: Spacing.lg,
+  },
+  datos: {
+    gap: Spacing.md,
+  },
+  dato: {
+    gap: 2,
+  },
+  datoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   logoutButton: {
-    marginTop: 32,
+    marginTop: Spacing.xl,
     borderWidth: 1,
-    borderColor: '#d92626',
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingVertical: 12,
     alignItems: 'center',
   },
   logoutText: {
-    color: '#d92626',
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
